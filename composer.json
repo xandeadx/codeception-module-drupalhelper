@@ -1,0 +1,21 @@
+{
+    "name": "xandeadx/codeception-module-drupalhelper",
+    "description": "Drupal helper module for Codeception",
+    "keywords": ["codeception", "browser-testing", "acceptance-testing"],
+    "homepage": "http://xandeadx.ru/",
+    "type": "library",
+    "license": "MIT",
+    "authors": [{
+        "name": "xandeadx"
+    }],
+    "minimum-stability": "RC",
+    "conflict": {
+        "codeception/codeception": "<4.0"
+    },
+    "autoload": {
+        "classmap": ["src/"]
+    },
+    "config": {
+        "classmap-authoritative": true
+    }
+}
