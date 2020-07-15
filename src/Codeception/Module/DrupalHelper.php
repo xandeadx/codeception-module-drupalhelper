@@ -4,7 +4,7 @@ namespace Codeception\Module;
 
 use Codeception\Module as CodeceptionModule;
 
-class Db extends CodeceptionModule {
+class DrupalHelper extends CodeceptionModule {
 
   public function login($username, $password) {
     $this->amOnPage('/user');
