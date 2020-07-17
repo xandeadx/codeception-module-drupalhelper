@@ -229,20 +229,15 @@ class DrupalHelper extends CodeceptionModule {
   /**
    * Return module settings.
    *
-   * @return array
+   * @return array|null
    */
   private function getModuleSettings($module_name, array $settings) {
-    $module_settings = [];
-
     foreach ($settings['modules']['enabled'] as $enabled) {
       $enabled_module_name = array_key_first($enabled);
       if ($module_name == $enabled_module_name) {
-        $module_settings = $enabled[$enabled_module_name];
-        break;
+        return $enabled[$enabled_module_name];
       }
     }
-
-    return $module_settings;
   }
 
 }
