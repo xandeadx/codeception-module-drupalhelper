@@ -168,6 +168,8 @@ class DrupalHelper extends CodeceptionModule {
 
   /**
    * Return max database value.
+   *
+   * @return string
    */
   public function grabMaxDatabaseValue($table, $column, $where = '') {
     $query = "SELECT MAX($column) FROM $table";
@@ -181,6 +183,8 @@ class DrupalHelper extends CodeceptionModule {
 
   /**
    * Return last added node id.
+   *
+   * @return int
    */
   public function grabLastAddedNodeId($node_type) {
     return $this->db->sqlQuery("SELECT MAX(nid) FROM node WHERE type = '$node_type'")->fetchColumn();
@@ -188,6 +192,8 @@ class DrupalHelper extends CodeceptionModule {
 
   /**
    * Return last added menu item id.
+   *
+   * @return int
    */
   public function grabLastAddedMenuItemId() {
     return $this->db->sqlQuery("SELECT MAX(id) FROM menu_link_content")->fetchColumn();
@@ -195,6 +201,8 @@ class DrupalHelper extends CodeceptionModule {
 
   /**
    * Return menu item uuid by id.
+   *
+   * @return string
    */
   public function grabMenuItemUuidById($menu_item_id) {
     return $this->db->grabFromDatabase('menu_link_content', 'uuid', ['id' => $menu_item_id]);
@@ -202,6 +210,8 @@ class DrupalHelper extends CodeceptionModule {
 
   /**
    * Return current user id.
+   *
+   * @return int
    */
   public function grabCurrentUserId() {
     return $this->webdriver->executeJS('return drupalSettings.user.uid;');
@@ -218,6 +228,8 @@ class DrupalHelper extends CodeceptionModule {
 
   /**
    * Return module settings.
+   *
+   * @return array
    */
   private function getModuleSettings($module_name, array $settings) {
     $module_settings = [];
