@@ -23,18 +23,24 @@ class DrupalHelper extends \Codeception\Module {
   protected $db;
 
   /**
+   * @var \Codeception\Module\AcceptanceHelper
+   */
+  protected $acceptancehelper;
+
+  /**
    * {@inheritDoc}
    */
   public function _initialize() {
     $this->webdriver = $this->getModule('WebDriver');
     $this->db = $this->getModule('Db');
+    $this->acceptancehelper = $this->getModule('AcceptanceHelper');
   }
 
   /**
    * {@inheritDoc}
    */
   public function _beforeSuite($settings = []) {
-    $db_module_settings = $this->getModuleSettings('Db', $settings);
+    $db_module_settings = $this->getEnabledModuleSettings('Db', $settings);
 
     if ($this->config['create_dump'] && $db_module_settings['populate']) {
       $path_to_drush = str_replace('/', DIRECTORY_SEPARATOR, 'vendor/bin/drush');
@@ -145,7 +151,7 @@ class DrupalHelper extends \Codeception\Module {
    * @return int
    */
   public function grabLastAddedNodeId($node_type) {
-    return $this->db->sqlQuery("SELECT MAX(nid) FROM node WHERE type = '$node_type'")->fetchColumn();
+    return $this->acceptancehelper->sqlQuery("SELECT MAX(nid) FROM node WHERE type = '$node_type'")->fetchColumn();
   }
 
   /**
@@ -154,7 +160,7 @@ class DrupalHelper extends \Codeception\Module {
    * @return int
    */
   public function grabLastAddedMenuItemId() {
-    return $this->db->sqlQuery("SELECT MAX(id) FROM menu_link_content")->fetchColumn();
+    return $this->acceptancehelper->sqlQuery("SELECT MAX(id) FROM menu_link_content")->fetchColumn();
   }
 
   /**

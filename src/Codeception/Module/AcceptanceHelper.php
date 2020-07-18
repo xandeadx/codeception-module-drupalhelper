@@ -62,14 +62,14 @@ class AcceptanceHelper extends \Codeception\Module {
    *
    * @return string
    */
-  public function grabMaxDatabaseValue($table, $column, $where = '') {
+  public function grabMaxDatabaseValue($table, $column, $where = null) {
     $query = "SELECT MAX($column) FROM $table";
 
     if ($where) {
       $query .= " WHERE $where";
     }
 
-    return $this->db->sqlQuery($query)->fetchColumn();
+    return $this->sqlQuery($query)->fetchColumn();
   }
 
 }
