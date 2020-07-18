@@ -2,17 +2,13 @@
 
 namespace Codeception\Module;
 
-use Codeception\Module as CodeceptionModule;
-
-class DrupalHelper extends CodeceptionModule {
+class DrupalHelper extends \Codeception\Module {
 
   protected $config = [
     'create_dump' => true,
     'admin_username' => 'admin',
     'admin_password' => 'admin',
     'error_message_selectors' => ['.status-message--error', '.messages--error'],
-    'page_title_selector' => '.page-title',
-    'breadcrumb_item_selector' => '.breadcrumb__item',
     'exclude_data_tables' => [],
   ];
 
@@ -117,29 +113,6 @@ class DrupalHelper extends CodeceptionModule {
   }
 
   /**
-   * See page title.
-   */
-  public function seePageTitle($page_title) {
-    $this->webdriver->see($page_title, ['css' => $this->config['page_title_selector']]);
-  }
-
-  /**
-   * See list.
-   */
-  public function seeList(array $items, $item_selector) {
-    foreach ($items as $key => $item) {
-      $this->webdriver->see($item, ['css' => $item_selector . ':nth-child(' . ($key + 1) . ')']);
-    }
-  }
-
-  /**
-   * See breadcrumb.
-   */
-  public function seeBreadcrumb(array $items) {
-    $this->seeList($items, $this->config['breadcrumb_item_selector']);
-  }
-
-  /**
    * Open vertical tab.
    */
   public function openVerticalTab($id) {
@@ -164,21 +137,6 @@ class DrupalHelper extends CodeceptionModule {
   public function fillTextareaWithFormat($wrapper_selector, $text, $format = 'raw_html') {
     $this->webdriver->selectOption($wrapper_selector . ' .filter-list', $format);
     $this->webdriver->fillField($wrapper_selector . ' .text-full', $text);
-  }
-
-  /**
-   * Return max database value.
-   *
-   * @return string
-   */
-  public function grabMaxDatabaseValue($table, $column, $where = '') {
-    $query = "SELECT MAX($column) FROM $table";
-
-    if ($where) {
-      $query .= " WHERE $where";
-    }
-
-    return $this->db->sqlQuery($query)->fetchColumn();
   }
 
   /**
@@ -231,7 +189,7 @@ class DrupalHelper extends CodeceptionModule {
    *
    * @return array|null
    */
-  private function getModuleSettings($module_name, array $settings) {
+  private function getEnabledModuleSettings($module_name, array $settings) {
     foreach ($settings['modules']['enabled'] as $enabled) {
       $enabled_module_name = array_key_first($enabled);
       if ($module_name == $enabled_module_name) {
