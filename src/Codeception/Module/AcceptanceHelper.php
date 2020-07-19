@@ -72,4 +72,16 @@ class AcceptanceHelper extends \Codeception\Module {
     return $this->sqlQuery($query)->fetchColumn();
   }
 
+  /**
+   * Fill checkbox.
+   */
+  public function fillCheckbox($checkbox, $state) {
+    if ($state) {
+      $this->webdriver->checkOption($checkbox);
+    }
+    else {
+      $this->webdriver->uncheckOption($checkbox);
+    }
+  }
+
 }
