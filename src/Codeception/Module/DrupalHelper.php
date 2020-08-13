@@ -173,6 +173,22 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Return last added file id.
+   */
+  public function grabLastAddedFileId(): int {
+    return $this->acceptancehelper->sqlQuery("SELECT MAX(fid) FROM file_managed")->fetchColumn();
+  }
+
+  /**
+   * Return file info from file_managed table.
+   *
+   * @return array
+   */
+  public function grabFileInfoFromDatabase($file_id) {
+    return $this->acceptancehelper->sqlQuery("SELECT * FROM file_managed WHERE fid = $file_id")->fetch();
+  }
+
+  /**
    * Return current user id.
    *
    * @return int
