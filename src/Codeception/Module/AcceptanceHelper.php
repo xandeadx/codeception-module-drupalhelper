@@ -58,7 +58,7 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
-   * See element attribute value.
+   * See element attribute exists or see attribute value.
    */
   public function seeElementAttribute(string $element_selector, string $attribute_name, string $attribute_value = NULL) {
     $this->webdriver->seeElementInDOM($element_selector);
@@ -67,6 +67,14 @@ class AcceptanceHelper extends \Codeception\Module {
       $element_attribute_value = $this->webdriver->grabAttributeFrom($element_selector, $attribute_name);
       $this->assertEquals($attribute_value, $element_attribute_value);
     }
+  }
+
+  /**
+   * See element attribute not exists.
+   */
+  public function dontSeeElementAttribute(string $element_selector, string $attribute_name) {
+    $this->webdriver->seeElementInDOM($element_selector);
+    $this->webdriver->dontSeeElementInDOM($element_selector . '[' . $attribute_name . ']');
   }
 
   /**
