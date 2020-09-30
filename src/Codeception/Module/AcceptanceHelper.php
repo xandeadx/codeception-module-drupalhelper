@@ -58,6 +58,18 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
+   * See element attribute value.
+   */
+  public function seeElementAttribute(string $element_selector, string $attribute_name, string $attribute_value = NULL) {
+    $this->webdriver->seeElementInDOM($element_selector);
+    $this->webdriver->seeElementInDOM($element_selector . '[' . $attribute_name . ']');
+    if ($attribute_value !== NULL) {
+      $element_attribute_value = $this->webdriver->grabAttributeFrom($element_selector, $attribute_name);
+      $this->assertEquals($attribute_value, $element_attribute_value);
+    }
+  }
+
+  /**
    * Return max database value.
    *
    * @return string
