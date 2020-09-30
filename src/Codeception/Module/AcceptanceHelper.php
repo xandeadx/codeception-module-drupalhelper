@@ -84,4 +84,11 @@ class AcceptanceHelper extends \Codeception\Module {
     }
   }
 
+  /**
+   * Click using javascript.
+   */
+  public function jsClick($selector) {
+    $this->webdriver->executeJS("document.querySelector('$selector').click();");
+  }
+
 }
