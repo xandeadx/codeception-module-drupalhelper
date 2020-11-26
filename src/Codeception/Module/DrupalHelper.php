@@ -54,7 +54,6 @@ class DrupalHelper extends \Codeception\Module {
         'queue',
         'sessions',
         'watchdog',
-        'test',
       ], $this->config['exclude_data_tables']);
 
       exec($path_to_drush . ' sql-dump --result-file="' . $path_to_dump . '" --structure-tables-list="' . implode(',', $exclude_data_tables) . '"');
