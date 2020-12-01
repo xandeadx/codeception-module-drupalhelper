@@ -197,6 +197,14 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Return path alias.
+   */
+  public function grabPathAlias(string $system_path): string {
+    $path_alias = $this->acceptancehelper->sqlQuery("SELECT alias FROM path_alias WHERE path = '$system_path'")->fetchColumn();
+    return $path_alias ? $path_alias : $system_path;
+  }
+
+  /**
    * Test urls.
    */
   public function testUrls($urls) {
