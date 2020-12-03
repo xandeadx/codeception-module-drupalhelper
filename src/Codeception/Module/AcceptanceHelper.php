@@ -85,6 +85,13 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
+   * See in DOM field by name.
+   */
+  public function seeFieldInDom(string $name) {
+    $this->webdriver->seeElementInDOM('[name="' . $name . '"]');
+  }
+
+  /**
    * Return max database value.
    *
    * @return string
