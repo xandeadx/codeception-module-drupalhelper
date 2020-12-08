@@ -118,8 +118,8 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Logout.
    */
-  public function logout($hard = FALSE): void {
-    if ($hard) {
+  public function logout($delete_session = FALSE): void {
+    if ($delete_session) {
       $this->webDriverModule->amOnDrupalPage('/user/logout');
       $this->webDriverModule->deleteSessionSnapshot('user_' . $this->grabCurretUserName());
     }
