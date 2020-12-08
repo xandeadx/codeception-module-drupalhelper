@@ -15,25 +15,25 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * @var \Codeception\Module\WebDriver
    */
-  protected $webdriver;
+  protected $webDriverModule;
 
   /**
    * @var \Codeception\Module\Db
    */
-  protected $db;
+  protected $dbModule;
 
   /**
    * @var \Codeception\Module\AcceptanceHelper
    */
-  protected $acceptancehelper;
+  protected $acceptanceHelperModule;
 
   /**
    * {@inheritDoc}
    */
   public function _initialize() {
-    $this->webdriver = $this->getModule('WebDriver');
-    $this->db = $this->getModule('Db');
-    $this->acceptancehelper = $this->getModule('AcceptanceHelper');
+    $this->webDriverModule = $this->getModule('WebDriver');
+    $this->dbModule = $this->getModule('Db');
+    $this->acceptanceHelperModule = $this->getModule('AcceptanceHelper');
   }
 
   /**
@@ -65,12 +65,12 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function amOnDrupalPage($url): void {
     if (strpos($url, '://') === FALSE) {
-      $this->webdriver->amOnPage($url);
+      $this->webDriverModule->amOnPage($url);
     }
     else {
-      $this->webdriver->amOnUrl($url);
+      $this->webDriverModule->amOnUrl($url);
     }
-    $this->webdriver->seeElementInDOM('body');
+    $this->webDriverModule->seeElementInDOM('body');
     $this->dontSeeErrorMessage();
     $this->dontSeeWatchdogPhpErrors();
   }
@@ -80,7 +80,7 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function dontSeeErrorMessage(): void {
     foreach ($this->config['error_message_selectors'] as $error_message_selector) {
-      $this->webdriver->dontSeeElement($error_message_selector);
+      $this->webDriverModule->dontSeeElement($error_message_selector);
     }
   }
 
@@ -88,19 +88,24 @@ class DrupalHelper extends \Codeception\Module {
    * Dont see watchdog num errors.
    */
   public function dontSeeWatchdogPhpErrors(): void {
-    $this->db->seeNumRecords(0, 'watchdog', ['type' => 'php']);
+    $this->dbModule->seeNumRecords(0, 'watchdog', ['type' => 'php']);
   }
 
   /**
    * Login as $username.
    */
   public function login(string $username, string $password): void {
+    if ($this->webDriverModule->loadSessionSnapshot('user_' . $username)) {
+      return;
+    }
+
     $this->amOnDrupalPage('/user/login');
-    $this->webdriver->fillField('.user-login-form input[name="name"]', $username);
-    $this->webdriver->fillField('.user-login-form input[name="pass"]', $password);
-    $this->webdriver->click('.user-login-form .form-submit');
+    $this->webDriverModule->fillField('.user-login-form input[name="name"]', $username);
+    $this->webDriverModule->fillField('.user-login-form input[name="pass"]', $password);
+    $this->webDriverModule->click('.user-login-form .form-submit');
     $this->dontSeeErrorMessage();
     $this->dontSeeWatchdogPhpErrors();
+    $this->webDriverModule->saveSessionSnapshot('user_' . $username);
   }
 
   /**
@@ -113,8 +118,14 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Logout.
    */
-  public function logout(): void {
-    $this->amOnDrupalPage('/user/logout');
+  public function logout($hard = FALSE): void {
+    if ($hard) {
+      $this->webDriverModule->amOnDrupalPage('/user/logout');
+      $this->webDriverModule->deleteSessionSnapshot('user_' . $this->grabCurretUserName());
+    }
+    else {
+      $this->webDriverModule->webDriver->manage()->deleteAllCookies();
+    }
   }
 
   /**
@@ -122,17 +133,17 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function openVerticalTab($id): void {
     $id = ltrim($id, '#');
-    $this->webdriver->scrollTo(['css' => 'a[href="#' . $id . '"]'], 0, -30);
-    $this->webdriver->click('a[href="#' . $id . '"]');
+    $this->webDriverModule->scrollTo(['css' => 'a[href="#' . $id . '"]'], 0, -30);
+    $this->webDriverModule->click('a[href="#' . $id . '"]');
   }
 
   /**
    * Open details.
    */
   public function openDetails($details_selector): void {
-    $this->webdriver->scrollTo(['css' => $details_selector], 0, -30);
-    if (!$this->webdriver->grabAttributeFrom($details_selector, 'open')) {
-      $this->webdriver->click($details_selector . ' > summary');
+    $this->webDriverModule->scrollTo(['css' => $details_selector], 0, -30);
+    if (!$this->webDriverModule->grabAttributeFrom($details_selector, 'open')) {
+      $this->webDriverModule->click($details_selector . ' > summary');
     }
   }
 
@@ -140,57 +151,71 @@ class DrupalHelper extends \Codeception\Module {
    * Fill textarea with format
    */
   public function fillTextareaWithFormat(string $wrapper_selector, string $text, string $format = 'raw_html'): void {
-    $this->webdriver->selectOption($wrapper_selector . ' .filter-list', $format);
-    $this->webdriver->fillField($wrapper_selector . ' .text-full', $text);
+    $this->webDriverModule->selectOption($wrapper_selector . ' .filter-list', $format);
+    $this->webDriverModule->fillField($wrapper_selector . ' .text-full', $text);
   }
 
   /**
    * Return last added node id.
    */
   public function grabLastAddedNodeId(string $node_type): int {
-    return $this->acceptancehelper->sqlQuery("SELECT MAX(nid) FROM node WHERE type = '$node_type'")->fetchColumn();
+    return $this->acceptanceHelperModule->sqlQuery("SELECT MAX(nid) FROM node WHERE type = '$node_type'")->fetchColumn();
   }
 
   /**
    * Return last added menu item id.
    */
   public function grabLastAddedMenuItemId(): int {
-    return $this->acceptancehelper->sqlQuery("SELECT MAX(id) FROM menu_link_content")->fetchColumn();
+    return $this->acceptanceHelperModule->sqlQuery("SELECT MAX(id) FROM menu_link_content")->fetchColumn();
   }
 
   /**
    * Return menu item uuid by id.
    */
   public function grabMenuItemUuidById(int $menu_item_id): string {
-    return $this->db->grabFromDatabase('menu_link_content', 'uuid', ['id' => $menu_item_id]);
+    return $this->dbModule->grabFromDatabase('menu_link_content', 'uuid', ['id' => $menu_item_id]);
   }
 
   /**
    * Return last added file id.
    */
   public function grabLastAddedFileId(): int {
-    return $this->acceptancehelper->sqlQuery("SELECT MAX(fid) FROM file_managed")->fetchColumn();
+    return $this->acceptanceHelperModule->sqlQuery("SELECT MAX(fid) FROM file_managed")->fetchColumn();
   }
 
   /**
    * Return file info from file_managed table.
    */
   public function grabFileInfoFromDatabase(int $file_id): array {
-    return $this->acceptancehelper->sqlQuery("SELECT * FROM file_managed WHERE fid = $file_id")->fetch();
+    return $this->acceptanceHelperModule->sqlQuery("SELECT * FROM file_managed WHERE fid = $file_id")->fetch();
   }
 
   /**
    * Return current user id.
    */
   public function grabCurrentUserId(): int {
-    return $this->webdriver->executeJS('return drupalSettings.user.uid;');
+    return $this->webDriverModule->executeJS('return drupalSettings.user.uid;');
+  }
+
+  /**
+   * Return current user name.
+   */
+  public function grabCurretUserName(): string {
+    return $this->gragUserNameById($this->grabCurrentUserId());
+  }
+
+  /**
+   * Return user name by user id.
+   */
+  public function grabUserNameById(int $user_id): string {
+    return $this->acceptanceHelperModule->sqlQuery("SELECT name FROM users WHERE uid = $user_id")->fetchColumn();
   }
 
   /**
    * Return path alias.
    */
   public function grabPathAlias(string $system_path): string {
-    $path_alias = $this->acceptancehelper->sqlQuery("SELECT alias FROM path_alias WHERE path = '$system_path'")->fetchColumn();
+    $path_alias = $this->acceptanceHelperModule->sqlQuery("SELECT alias FROM path_alias WHERE path = '$system_path'")->fetchColumn();
     return $path_alias ? $path_alias : $system_path;
   }
 
