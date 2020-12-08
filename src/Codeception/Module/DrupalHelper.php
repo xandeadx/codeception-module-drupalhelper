@@ -120,7 +120,7 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function logout($delete_session = FALSE): void {
     if ($delete_session) {
-      $this->webDriverModule->amOnDrupalPage('/user/logout');
+      $this->amOnDrupalPage('/user/logout');
       $this->webDriverModule->deleteSessionSnapshot('user_' . $this->grabCurretUserName());
     }
     else {
