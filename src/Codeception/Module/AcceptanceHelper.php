@@ -23,8 +23,8 @@ class AcceptanceHelper extends \Codeception\Module {
    * {@inheritDoc}
    */
   public function _initialize() {
-    $this->webdriver = $this->getModule('WebDriver');
-    $this->db = $this->getModule('Db');
+    $this->webDriverModule = $this->getModule('WebDriver');
+    $this->dbModule = $this->getModule('Db');
   }
 
   /**
