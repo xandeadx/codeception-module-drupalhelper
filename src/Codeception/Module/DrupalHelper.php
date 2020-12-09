@@ -12,25 +12,16 @@ class DrupalHelper extends \Codeception\Module {
     'exclude_data_tables' => [],
   ];
 
-  /**
-   * @var \Codeception\Module\WebDriver
-   */
-  protected $webDriverModule;
+  protected \Codeception\Module\WebDriver $webDriverModule;
 
-  /**
-   * @var \Codeception\Module\Db
-   */
-  protected $dbModule;
+  protected \Codeception\Module\Db $dbModule;
 
-  /**
-   * @var \Codeception\Module\AcceptanceHelper
-   */
-  protected $acceptanceHelperModule;
+  protected \Codeception\Module\AcceptanceHelper $acceptanceHelperModule;
 
   /**
    * {@inheritDoc}
    */
-  public function _initialize() {
+  public function _initialize(): void {
     $this->webDriverModule = $this->getModule('WebDriver');
     $this->dbModule = $this->getModule('Db');
     $this->acceptanceHelperModule = $this->getModule('AcceptanceHelper');
@@ -39,7 +30,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * {@inheritDoc}
    */
-  public function _beforeSuite($settings = []) {
+  public function _beforeSuite($settings = []): void {
     $db_module_settings = $this->getEnabledModuleSettings('Db', $settings);
 
     if ($this->config['create_dump'] && $db_module_settings['populate']) {
@@ -63,7 +54,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Goto to drupal page and check errors.
    */
-  public function amOnDrupalPage($url): void {
+  public function amOnDrupalPage(string $url): void {
     if (strpos($url, '://') === FALSE) {
       $this->webDriverModule->amOnPage($url);
     }
@@ -118,7 +109,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Logout.
    */
-  public function logout($delete_session = FALSE): void {
+  public function logout(bool $delete_session = FALSE): void {
     if ($delete_session) {
       $this->amOnDrupalPage('/user/logout');
       $this->webDriverModule->deleteSessionSnapshot('user_' . $this->grabCurretUserName());
@@ -131,7 +122,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Open vertical tab.
    */
-  public function openVerticalTab($id): void {
+  public function openVerticalTab(string $id): void {
     $id = ltrim($id, '#');
     $this->webDriverModule->scrollTo(['css' => 'a[href="#' . $id . '"]'], 0, -30);
     $this->webDriverModule->click('a[href="#' . $id . '"]');
@@ -140,7 +131,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Open details.
    */
-  public function openDetails($details_selector): void {
+  public function openDetails(string $details_selector): void {
     $this->webDriverModule->scrollTo(['css' => $details_selector], 0, -30);
     if (!$this->webDriverModule->grabAttributeFrom($details_selector, 'open')) {
       $this->webDriverModule->click($details_selector . ' > summary');
@@ -213,6 +204,8 @@ class DrupalHelper extends \Codeception\Module {
 
   /**
    * Return path alias.
+   *
+   * @param string $system_path System path starting with "/", eg "/node/123"
    */
   public function grabPathAlias(string $system_path): string {
     $path_alias = $this->acceptanceHelperModule->sqlQuery("SELECT alias FROM path_alias WHERE path = '$system_path'")->fetchColumn();
@@ -220,7 +213,7 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
-   * Test urls.
+   * Open each URL and check page for Drupal errors.
    */
   public function testUrls(array $urls): void {
     foreach ($urls as $url) {
@@ -231,7 +224,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return codeception module settings.
    */
-  private function getEnabledModuleSettings($module_name, array $settings): ?array {
+  private function getEnabledModuleSettings(string $module_name, array $settings): ?array {
     foreach ($settings['modules']['enabled'] as $enabled) {
       $enabled_module_name = array_key_first($enabled);
       if ($module_name == $enabled_module_name) {

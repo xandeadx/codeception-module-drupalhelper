@@ -9,44 +9,40 @@ class AcceptanceHelper extends \Codeception\Module {
     'breadcrumb_item_selector' => '.breadcrumb__item',
   ];
 
-  /**
-   * @var \Codeception\Module\WebDriver
-   */
-  protected $webDriverModule;
+  protected \Codeception\Module\WebDriver $webDriverModule;
 
-  /**
-   * @var \Codeception\Module\Db
-   */
-  protected $dbModule;
+  protected \Codeception\Module\Db $dbModule;
 
   /**
    * {@inheritDoc}
    */
-  public function _initialize() {
+  public function _initialize(): void {
     $this->webDriverModule = $this->getModule('WebDriver');
     $this->dbModule = $this->getModule('Db');
   }
 
   /**
    * Sql query.
+   *
+   * @return \PDOStatement|false
    */
-  public function sqlQuery($query) {
+  public function sqlQuery(string $query) {
     return $this->dbModule->_getDbh()->query($query);
   }
 
   /**
    * See page title.
    */
-  public function seePageTitle($page_title): void {
-    $this->webDriverModule->see($page_title, ['css' => $this->config['page_title_selector']]);
+  public function seePageTitle(string $page_title): void {
+    $this->webDriverModule->see($page_title, $this->config['page_title_selector']);
   }
 
   /**
    * See list.
    */
-  public function seeList(array $items, $item_selector): void {
+  public function seeList(array $items, string $item_selector): void {
     foreach ($items as $key => $item) {
-      $this->webDriverModule->see($item, ['css' => $item_selector . ':nth-child(' . ($key + 1) . ')']);
+      $this->webDriverModule->see($item, $item_selector . ':nth-child(' . ($key + 1) . ')');
     }
   }
 
@@ -93,8 +89,6 @@ class AcceptanceHelper extends \Codeception\Module {
 
   /**
    * Return max database value.
-   *
-   * @return string
    */
   public function grabMaxDatabaseValue(string $table, string $column, string $where = null): string {
     $query = "SELECT MAX($column) FROM $table";
@@ -109,8 +103,8 @@ class AcceptanceHelper extends \Codeception\Module {
   /**
    * Fill checkbox.
    */
-  public function fillCheckbox($checkbox, $state): void {
-    if ($state) {
+  public function fillCheckbox(string $checkbox, bool $enabled): void {
+    if ($enabled) {
       $this->webDriverModule->checkOption($checkbox);
     }
     else {
@@ -121,7 +115,7 @@ class AcceptanceHelper extends \Codeception\Module {
   /**
    * Click using javascript.
    */
-  public function jsClick($selector): void {
+  public function jsClick(string $selector): void {
     $this->webDriverModule->executeJS("document.querySelector('$selector').click();");
   }
 
