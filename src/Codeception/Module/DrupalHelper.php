@@ -34,7 +34,6 @@ class DrupalHelper extends \Codeception\Module {
     $db_module_settings = $this->getEnabledModuleSettings('Db', $settings);
 
     if ($this->config['create_dump'] && $db_module_settings['populate']) {
-      $path_to_drush = str_replace('/', DIRECTORY_SEPARATOR, 'vendor/bin/drush');
       $path_to_dump = str_replace('/', DIRECTORY_SEPARATOR, $db_module_settings['dump']);
       $exclude_data_tables = array_merge([
         'batch',
@@ -47,8 +46,35 @@ class DrupalHelper extends \Codeception\Module {
         'watchdog',
       ], $this->config['exclude_data_tables']);
 
-      exec($path_to_drush . ' sql-dump --result-file="' . $path_to_dump . '" --structure-tables-list="' . implode(',', $exclude_data_tables) . '"');
+      $this->drush('cache-rebuild', 'prod');
+      $this->drush('sql-dump --result-file="' . $path_to_dump . '" --structure-tables-list="' . implode(',', $exclude_data_tables) . '"', 'prod');
     }
+  }
+
+  /**
+   * Run drush command and return result.
+   */
+  public function drush(string $command, string $environment = 'test'): string {
+    $path_to_drush = str_replace('/', DIRECTORY_SEPARATOR, 'vendor/bin/drush');
+
+    if ($environment == 'test') {
+      $webdriver_module_url = $this->webDriverModule->_getConfig('url');
+      $uri = parse_url($webdriver_module_url, PHP_URL_HOST);
+      $command .= ' --uri=' . $uri;
+    }
+
+    return exec($path_to_drush . ' ' . $command);
+  }
+
+  /**
+   * Run cron.
+   */
+  public function runCron(): void {
+    $this->loginAsAdmin();
+    $this->amOnDrupalPage('/admin/config/system/cron');
+    $this->webDriverModule->click('#edit-run');
+    $this->dontSeeWatchdogPhpErrors();
+    $this->dontSeeErrorMessage();
   }
 
   /**
@@ -142,7 +168,7 @@ class DrupalHelper extends \Codeception\Module {
    * Fill textarea with format
    */
   public function fillTextareaWithFormat(string $wrapper_selector, string $text, string $format = 'raw_html'): void {
-    $this->webDriverModule->selectOption($wrapper_selector . ' .filter-list', $format);
+    $this->webDriverModule->selectOption($wrapper_selector . ' .form-select', $format);
     $this->webDriverModule->fillField($wrapper_selector . ' .text-full', $text);
   }
 
@@ -219,6 +245,20 @@ class DrupalHelper extends \Codeception\Module {
     foreach ($urls as $url) {
       $this->amOnDrupalPage($url);
     }
+  }
+
+  /**
+   * Truncate table.
+   */
+  public function truncateTable(string $table): void {
+    $this->acceptanceHelperModule->sqlQuery("TRUNCATE TABLE $table");
+  }
+
+  /**
+   * Clear cache table.
+   */
+  public function clearCacheTable(string $bin): void {
+    $this->truncateTable('cache_' . $bin);
   }
 
   /**
