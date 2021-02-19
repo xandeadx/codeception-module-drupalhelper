@@ -248,7 +248,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Open each URL and check page for Drupal errors.
    */
-  public function testUrls(array $urls): void {
+  public function testDrupalPages(array $urls): void {
     foreach ($urls as $url) {
       $this->amOnDrupalPage($url);
     }

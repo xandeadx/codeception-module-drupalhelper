@@ -101,6 +101,18 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
+   * Return links hrefs.
+   */
+  public function grabLinksUrls(string $selector): array {
+    $urls = $this->webDriverModule->grabMultiple($selector, 'href');
+    $urls = array_filter($urls, function ($url) {
+      return $url && !preg_match('/^[a-z]+:[^\/]/', $url);
+    });
+    return $urls;
+  }
+
+
+  /**
    * Fill checkbox.
    */
   public function fillCheckbox(string $checkbox, bool $enabled): void {
