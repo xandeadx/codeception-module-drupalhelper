@@ -81,11 +81,11 @@ class DrupalHelper extends \Codeception\Module {
    * Goto to drupal page and check errors.
    */
   public function amOnDrupalPage(string $url): void {
-    if (strpos($url, '://') === FALSE) {
-      $this->webDriverModule->amOnPage($url);
+    if (str_contains($url, '://')) {
+      $this->webDriverModule->amOnUrl($url);
     }
     else {
-      $this->webDriverModule->amOnUrl($url);
+      $this->webDriverModule->amOnPage($url);
     }
     $this->webDriverModule->seeElementInDOM('body');
     $this->dontSeeErrorMessage();
@@ -105,7 +105,14 @@ class DrupalHelper extends \Codeception\Module {
    * Dont see watchdog num errors.
    */
   public function dontSeeWatchdogPhpErrors(): void {
-    $this->dbModule->seeNumRecords(0, 'watchdog', ['type' => 'php']);
+    $errors_count = (int)$this->acceptanceHelperModule->sqlQuery("
+      SELECT COUNT(*)
+      FROM watchdog
+      WHERE
+        type = 'php' AND
+        variables NOT LIKE '%rename(%/php/twig/%'
+    ")->fetchColumn();
+    $this->assertEquals(0, $errors_count);
   }
 
   /**
