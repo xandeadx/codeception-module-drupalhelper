@@ -255,6 +255,17 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Delete menu item.
+   */
+  public function deleteMenuItem(int $menu_item_id): void {
+    $this->loginAsAdmin();
+    $this->amOnDrupalPage('/admin/structure/menu/item/' . $menu_item_id . '/delete');
+    $this->webDriverModule->click('.form-actions .form-submit');
+    $this->dontSeeErrorMessage();
+    $this->dontSeeWatchdogPhpErrors();
+  }
+
+  /**
    * Return last added file id.
    */
   public function grabLastAddedFileId(): int {
