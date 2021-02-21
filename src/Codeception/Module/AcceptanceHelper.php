@@ -88,6 +88,13 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
+   * Fill field using javascript.
+   */
+  public function fillFieldUsingJs(string $field_name, $value): void {
+    $this->webDriverModule->executeJS("document.querySelector('[name=\"$field_name\"]').value = '$value';");
+  }
+
+  /**
    * Return max database value.
    */
   public function grabMaxDatabaseValue(string $table, string $column, string $where = null): string {
@@ -111,7 +118,6 @@ class AcceptanceHelper extends \Codeception\Module {
     return $urls;
   }
 
-
   /**
    * Fill checkbox.
    */
@@ -127,8 +133,32 @@ class AcceptanceHelper extends \Codeception\Module {
   /**
    * Click using javascript.
    */
-  public function jsClick(string $selector): void {
+  public function clickUsingJs(string $selector): void {
     $this->webDriverModule->executeJS("document.querySelector('$selector').click();");
+  }
+
+  /**
+   * See one element.
+   */
+  public function seeOneElement(string $selector): void {
+    $this->webDriverModule->seeNumberOfElements($selector, 1);
+  }
+
+  /**
+   * See jQuery Dialog.
+   */
+  public function seeJqueryDialog(string $title = NULL): void {
+    $this->webDriverModule->seeElement('.ui-dialog');
+    if ($title) {
+      $this->webDriverModule->see($title, '.ui-dialog-title');
+    }
+  }
+
+  /**
+   * Dont see jQuery Dialog.
+   */
+  public function dontSeeJqueryDialog(): void {
+    $this->webDriverModule->dontSeeElement('.ui-dialog');
   }
 
 }

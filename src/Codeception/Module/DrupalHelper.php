@@ -46,7 +46,6 @@ class DrupalHelper extends \Codeception\Module {
         'watchdog',
       ], $this->config['exclude_data_tables']);
 
-      $this->drush('cache-rebuild', 'prod');
       $this->drush('sql-dump --result-file="' . $path_to_dump . '" --structure-tables-list="' . implode(',', $exclude_data_tables) . '"', 'prod');
     }
   }
@@ -183,7 +182,62 @@ class DrupalHelper extends \Codeception\Module {
    * Return last added node id.
    */
   public function grabLastAddedNodeId(string $node_type): int {
-    return $this->acceptanceHelperModule->sqlQuery("SELECT MAX(nid) FROM node WHERE type = '$node_type'")->fetchColumn();
+    return (int)$this->acceptanceHelperModule->sqlQuery("
+      SELECT MAX(nid)
+      FROM node
+      WHERE type = '$node_type'
+    ")->fetchColumn();
+  }
+
+  /**
+   * Return last added term id.
+   */
+  public function grabLastAddedTermId(string $vocabulary_name): int {
+    return (int)$this->acceptanceHelperModule->sqlQuery("
+      SELECT MAX(tid)
+      FROM taxonomy_term_data
+      WHERE vid = '$vocabulary_name'
+    ")->fetchColumn();
+  }
+
+  /**
+   * Return term id by name.
+   */
+  public function grabTermIdByName(string $vocabulary_name, string $term_name): int {
+    return (int)$this->acceptanceHelperModule->sqlQuery("
+      SELECT MAX(tid)
+      FROM taxonomy_term_field_data
+      WHERE vid = '$vocabulary_name' AND name = '$term_name'
+    ")->fetchColumn();
+  }
+
+  /**
+   * Return term id by name.
+   */
+  public function grabTermNameById(string $vocabulary_name, string $term_name): string {
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT name
+      FROM taxonomy_term_field_data
+      WHERE vid = '$vocabulary_name' AND name = '$term_name'
+    ")->fetchColumn();
+  }
+
+  /**
+   * Create term and return term id.
+   */
+  public function createTerm(string $vocabulary_name, string $term_name, bool $force = FALSE): int {
+    if (!$force && ($term_id = $this->grabTermIdByName($vocabulary_name, $term_name))) {
+      return $term_id;
+    }
+
+    $this->loginAsAdmin();
+    $this->amOnDrupalPage('/admin/structure/taxonomy/manage/' . $vocabulary_name . '/add');
+    $this->webDriverModule->fillField('name[0][value]', $term_name);
+    $this->webDriverModule->click('.form-actions .form-submit');
+    $this->dontSeeErrorMessage();
+    $this->dontSeeWatchdogPhpErrors();
+
+    return $this->grabLastAddedTermId($vocabulary_name);
   }
 
   /**
@@ -266,6 +320,13 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function clearCacheTable(string $bin): void {
     $this->truncateTable('cache_' . $bin);
+  }
+
+  /**
+   * Clear flood table.
+   */
+  public function clearFloodTable(): void {
+    $this->truncateTable('flood');
   }
 
   /**
