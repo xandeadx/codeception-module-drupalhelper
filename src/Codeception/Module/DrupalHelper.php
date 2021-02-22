@@ -190,6 +190,21 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Delete node.
+   */
+  public function deleteNode(int $nid, bool $check = TRUE): void {
+    $this->loginAsAdmin();
+    $this->amOnDrupalPage("/node/$nid/delete");
+    $this->webDriverModule->click('.form-submit');
+
+    if ($check) {
+      $this->dontSeeErrorMessage();
+      $this->dontSeeWatchdogPhpErrors();
+      $this->dbModule->dontSeeInDatabase('node', ['nid' => $nid]);
+    }
+  }
+
+  /**
    * Return last added term id.
    */
   public function grabLastAddedTermId(string $vocabulary_name): int {
