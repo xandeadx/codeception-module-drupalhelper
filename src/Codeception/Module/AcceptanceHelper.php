@@ -124,7 +124,7 @@ class AcceptanceHelper extends \Codeception\Module {
   /**
    * Fill checkbox.
    */
-  public function fillCheckbox(string $checkbox, bool $enabled): void {
+  public function fillCheckbox(string $checkbox, bool $enabled = TRUE): void {
     if ($enabled) {
       $this->webDriverModule->checkOption($checkbox);
     }
@@ -165,16 +165,6 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
-   * Instant scroll (without animation).
-   */
-  public function scrollToWithoutAnimation($selector, $offsetX = 0, $offsetY = 0): void {
-    $element = $this->webDriverModule->webDriver->findElement(WebDriverBy::cssSelector($selector));
-    $x = $element->getLocation()->getX() + $offsetX;
-    $y = $element->getLocation()->getY() + $offsetY;
-    $this->webDriverModule->executeJS("window.scrollTo({top: $y, left: $x, behavior: 'instant'})");
-  }
-
-  /**
    * Wait for jquery dialog.
    */
   public function waitForJqueryDialog(): void {
@@ -187,6 +177,16 @@ class AcceptanceHelper extends \Codeception\Module {
    */
   public function closeJqueryDialog(): void {
     $this->webDriverModule->click('.ui-dialog-titlebar-close');
+  }
+
+  /**
+   * Instant scroll (without animation).
+   */
+  public function scrollToWithoutAnimation($selector, $offsetX = 0, $offsetY = 0): void {
+    $element = $this->webDriverModule->webDriver->findElement(WebDriverBy::cssSelector($selector));
+    $x = $element->getLocation()->getX() + $offsetX;
+    $y = $element->getLocation()->getY() + $offsetY;
+    $this->webDriverModule->executeJS("window.scrollTo({top: $y, left: $x, behavior: 'instant'})");
   }
 
 }
