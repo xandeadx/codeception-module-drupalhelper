@@ -18,6 +18,10 @@ class DrupalHelper extends \Codeception\Module {
 
   protected \Codeception\Module\AcceptanceHelper $acceptanceHelperModule;
 
+  protected $currentUsername = '';
+
+  protected $rememberedUsername = '';
+
   /**
    * {@inheritDoc}
    */
@@ -69,11 +73,13 @@ class DrupalHelper extends \Codeception\Module {
    * Run cron.
    */
   public function runCron(): void {
+    $this->rememberCurrentSession();
     $this->loginAsAdmin();
     $this->amOnDrupalPage('/admin/config/system/cron');
     $this->webDriverModule->click('#edit-run');
     $this->dontSeeWatchdogPhpErrors();
     $this->dontSeeErrorMessage();
+    $this->restoreRememberedSession();
   }
 
   /**
@@ -129,6 +135,7 @@ class DrupalHelper extends \Codeception\Module {
     $this->dontSeeErrorMessage();
     $this->dontSeeWatchdogPhpErrors();
     $this->webDriverModule->saveSessionSnapshot('user_' . $username);
+    $this->currentUsername = $username;
   }
 
   /**
@@ -148,6 +155,30 @@ class DrupalHelper extends \Codeception\Module {
     }
     else {
       $this->webDriverModule->webDriver->manage()->deleteAllCookies();
+    }
+  }
+
+  /**
+   * Return current username.
+   */
+  public function grabCurrentUsername(): string {
+    return $this->currentUsername;
+  }
+
+  /**
+   * Remember current user.
+   */
+  public function rememberCurrentSession(): void {
+    $this->rememberedUsername = $this->currentUsername;
+  }
+
+  /**
+   * Restore remembered user session.
+   */
+  public function restoreRememberedSession(): void {
+    if ($this->currentUsername != $this->rememberedUsername) {
+      $this->webDriverModule->loadSessionSnapshot('user_' . $this->rememberedUsername);
+      $this->currentUsername = $this->rememberedUsername;
     }
   }
 
@@ -193,6 +224,7 @@ class DrupalHelper extends \Codeception\Module {
    * Delete node.
    */
   public function deleteNode(int $nid, bool $check = TRUE): void {
+    $this->rememberCurrentSession();
     $this->loginAsAdmin();
     $this->amOnDrupalPage("/node/$nid/delete");
     $this->webDriverModule->click('.form-submit');
@@ -202,6 +234,8 @@ class DrupalHelper extends \Codeception\Module {
       $this->dontSeeWatchdogPhpErrors();
       $this->dbModule->dontSeeInDatabase('node', ['nid' => $nid]);
     }
+
+    $this->restoreRememberedSession();
   }
 
   /**
@@ -245,12 +279,14 @@ class DrupalHelper extends \Codeception\Module {
       return $term_id;
     }
 
+    $this->rememberCurrentSession();
     $this->loginAsAdmin();
     $this->amOnDrupalPage('/admin/structure/taxonomy/manage/' . $vocabulary_name . '/add');
     $this->webDriverModule->fillField('name[0][value]', $term_name);
     $this->webDriverModule->click('.form-actions .form-submit');
     $this->dontSeeErrorMessage();
     $this->dontSeeWatchdogPhpErrors();
+    $this->restoreRememberedSession();
 
     return $this->grabLastAddedTermId($vocabulary_name);
   }
@@ -273,11 +309,13 @@ class DrupalHelper extends \Codeception\Module {
    * Delete menu item.
    */
   public function deleteMenuItem(int $menu_item_id): void {
+    $this->rememberCurrentSession();
     $this->loginAsAdmin();
     $this->amOnDrupalPage('/admin/structure/menu/item/' . $menu_item_id . '/delete');
     $this->webDriverModule->click('.form-actions .form-submit');
     $this->dontSeeErrorMessage();
     $this->dontSeeWatchdogPhpErrors();
+    $this->restoreRememberedSession();
   }
 
   /**
