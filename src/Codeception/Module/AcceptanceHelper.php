@@ -117,6 +117,7 @@ class AcceptanceHelper extends \Codeception\Module {
     $urls = array_filter($urls, function ($url) {
       return $url && !preg_match('/^[a-z]+:[^\/]/', $url);
     });
+    $urls = array_unique($urls);
     return $urls;
   }
 
