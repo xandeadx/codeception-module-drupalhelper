@@ -2,6 +2,8 @@
 
 namespace Codeception\Module;
 
+use Facebook\WebDriver\WebDriverBy;
+
 class AcceptanceHelper extends \Codeception\Module {
 
   protected $config = [
@@ -159,6 +161,31 @@ class AcceptanceHelper extends \Codeception\Module {
    */
   public function dontSeeJqueryDialog(): void {
     $this->webDriverModule->dontSeeElement('.ui-dialog');
+  }
+
+  /**
+   * Instant scroll (without animation).
+   */
+  public function scrollToWithoutAnimation($selector, $offsetX = 0, $offsetY = 0): void {
+    $element = $this->webDriverModule->webDriver->findElement(WebDriverBy::cssSelector($selector));
+    $x = $element->getLocation()->getX() + $offsetX;
+    $y = $element->getLocation()->getY() + $offsetY;
+    $this->webDriverModule->executeJS("window.scrollTo({top: $y, left: $x, behavior: 'instant'})");
+  }
+
+  /**
+   * Wait for jquery dialog.
+   */
+  public function waitForJqueryDialog(): void {
+    $this->webDriverModule->waitForElement('.ui-dialog');
+    $this->webDriverModule->wait(0.5); // Wait for animation end
+  }
+
+  /**
+   * Close jQuery Dialog.
+   */
+  public function closeJqueryDialog(): void {
+    $this->webDriverModule->click('.ui-dialog-titlebar-close');
   }
 
 }
