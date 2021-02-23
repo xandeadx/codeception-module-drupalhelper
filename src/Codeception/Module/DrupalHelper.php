@@ -50,14 +50,14 @@ class DrupalHelper extends \Codeception\Module {
         'watchdog',
       ], $this->config['exclude_data_tables']);
 
-      $this->drush('sql-dump --result-file="' . $path_to_dump . '" --structure-tables-list="' . implode(',', $exclude_data_tables) . '"', 'prod');
+      $this->runDrush('sql-dump --result-file="' . $path_to_dump . '" --structure-tables-list="' . implode(',', $exclude_data_tables) . '"', 'prod');
     }
   }
 
   /**
    * Run drush command and return result.
    */
-  public function drush(string $command, string $environment = 'test'): string {
+  public function runDrush(string $command, string $environment = 'test'): string {
     $path_to_drush = str_replace('/', DIRECTORY_SEPARATOR, 'vendor/bin/drush');
 
     if ($environment == 'test') {
