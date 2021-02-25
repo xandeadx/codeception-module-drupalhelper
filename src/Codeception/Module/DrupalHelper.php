@@ -77,8 +77,7 @@ class DrupalHelper extends \Codeception\Module {
     $this->loginAsAdmin();
     $this->amOnDrupalPage('/admin/config/system/cron');
     $this->webDriverModule->click('#edit-run');
-    $this->dontSeeWatchdogPhpErrors();
-    $this->dontSeeErrorMessage();
+    $this->dontSeeDrupalErrors();
     $this->restoreRememberedSession();
   }
 
@@ -93,8 +92,7 @@ class DrupalHelper extends \Codeception\Module {
       $this->webDriverModule->amOnPage($url);
     }
     $this->webDriverModule->seeElementInDOM('body');
-    $this->dontSeeErrorMessage();
-    $this->dontSeeWatchdogPhpErrors();
+    $this->dontSeeDrupalErrors();
   }
 
   /**
@@ -121,9 +119,19 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Dont see flash errors and watchdog errors.
+   */
+  public function dontSeeDrupalErrors(): void {
+    $this->dontSeeErrorMessage();
+    $this->dontSeeWatchdogPhpErrors();
+  }
+
+  /**
    * Login as $username.
    */
   public function login(string $username, string $password): void {
+    $this->currentUsername = $username;
+
     if ($this->webDriverModule->loadSessionSnapshot('user_' . $username)) {
       return;
     }
@@ -132,10 +140,8 @@ class DrupalHelper extends \Codeception\Module {
     $this->webDriverModule->fillField('.user-login-form input[name="name"]', $username);
     $this->webDriverModule->fillField('.user-login-form input[name="pass"]', $password);
     $this->webDriverModule->click('.user-login-form .form-submit');
-    $this->dontSeeErrorMessage();
-    $this->dontSeeWatchdogPhpErrors();
+    $this->dontSeeDrupalErrors();
     $this->webDriverModule->saveSessionSnapshot('user_' . $username);
-    $this->currentUsername = $username;
   }
 
   /**
@@ -156,6 +162,7 @@ class DrupalHelper extends \Codeception\Module {
     else {
       $this->webDriverModule->webDriver->manage()->deleteAllCookies();
     }
+    $this->currentUsername = '';
   }
 
   /**
@@ -177,7 +184,12 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function restoreRememberedSession(): void {
     if ($this->currentUsername != $this->rememberedUsername) {
-      $this->webDriverModule->loadSessionSnapshot('user_' . $this->rememberedUsername);
+      if ($this->rememberedUsername) {
+        $this->webDriverModule->loadSessionSnapshot('user_' . $this->rememberedUsername);
+      }
+      else {
+        $this->logout();
+      }
       $this->currentUsername = $this->rememberedUsername;
     }
   }
@@ -230,8 +242,7 @@ class DrupalHelper extends \Codeception\Module {
     $this->webDriverModule->click('.form-submit');
 
     if ($check) {
-      $this->dontSeeErrorMessage();
-      $this->dontSeeWatchdogPhpErrors();
+      $this->dontSeeDrupalErrors();
       $this->dbModule->dontSeeInDatabase('node', ['nid' => $nid]);
     }
 
@@ -284,8 +295,7 @@ class DrupalHelper extends \Codeception\Module {
     $this->amOnDrupalPage('/admin/structure/taxonomy/manage/' . $vocabulary_name . '/add');
     $this->webDriverModule->fillField('name[0][value]', $term_name);
     $this->webDriverModule->click('.form-actions .form-submit');
-    $this->dontSeeErrorMessage();
-    $this->dontSeeWatchdogPhpErrors();
+    $this->dontSeeDrupalErrors();
     $this->restoreRememberedSession();
 
     return $this->grabLastAddedTermId($vocabulary_name);
@@ -313,8 +323,7 @@ class DrupalHelper extends \Codeception\Module {
     $this->loginAsAdmin();
     $this->amOnDrupalPage('/admin/structure/menu/item/' . $menu_item_id . '/delete');
     $this->webDriverModule->click('.form-actions .form-submit');
-    $this->dontSeeErrorMessage();
-    $this->dontSeeWatchdogPhpErrors();
+    $this->dontSeeDrupalErrors();
     $this->restoreRememberedSession();
   }
 
@@ -330,6 +339,13 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function grabFileInfoFromDatabase(int $file_id): array {
     return $this->acceptanceHelperModule->sqlQuery("SELECT * FROM file_managed WHERE fid = $file_id")->fetch();
+  }
+
+  /**
+   * Return last added comment id.
+   */
+  public function grabLastAddedCommentId(): int {
+    return $this->acceptanceHelperModule->sqlQuery("SELECT MAX(cid) FROM comment")->fetchColumn();
   }
 
   /**
