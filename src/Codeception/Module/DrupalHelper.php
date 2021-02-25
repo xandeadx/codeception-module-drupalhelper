@@ -52,6 +52,8 @@ class DrupalHelper extends \Codeception\Module {
 
       $this->runDrush('sql-dump --result-file="' . $path_to_dump . '" --structure-tables-list="' . implode(',', $exclude_data_tables) . '"', 'prod');
     }
+
+    $this->truncateTable('watchdog');
   }
 
   /**
@@ -393,6 +395,13 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function truncateTable(string $table): void {
     $this->acceptanceHelperModule->sqlQuery("TRUNCATE TABLE $table");
+  }
+
+  /**
+   * Clear table. Alias for DrupalHelper::truncateTable().
+   */
+  public function cleatTable(string $table): void {
+    $this->truncateTable($table);
   }
 
   /**
