@@ -189,4 +189,18 @@ class AcceptanceHelper extends \Codeception\Module {
     $this->webDriverModule->executeJS("window.scrollTo({top: $y, left: $x, behavior: 'instant'})");
   }
 
+  /**
+   * Generate unique string.
+   */
+  public function generateString(string $string, string $function = '', bool $add_time = TRUE): string {
+    if ($function) {
+      $string .= ' ' . $function;
+    }
+    if ($add_time) {
+      $string .= ' ' . date(DATE_ATOM);
+    }
+
+    return $string;
+  }
+
 }

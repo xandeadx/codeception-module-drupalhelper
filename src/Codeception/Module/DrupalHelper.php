@@ -98,6 +98,13 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Goto node page.
+   */
+  public function amOnNodePage(int $nid): void {
+    $this->amOnDrupalPage($this->grabPathAlias('/node/' . $nid));
+  }
+
+  /**
    * Dont see error message.
    */
   public function dontSeeErrorMessage(): void {
