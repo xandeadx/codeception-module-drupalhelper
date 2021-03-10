@@ -53,7 +53,9 @@ class DrupalHelper extends \Codeception\Module {
       $this->runDrush('sql-dump --result-file="' . $path_to_dump . '" --structure-tables-list="' . implode(',', $exclude_data_tables) . '"', 'prod');
     }
 
-    $this->truncateTable('watchdog');
+    if ($this->tableExist('watchdog')) {
+      $this->truncateTable('watchdog');
+    }
   }
 
   /**
@@ -394,6 +396,19 @@ class DrupalHelper extends \Codeception\Module {
   public function testDrupalPages(array $urls): void {
     foreach ($urls as $url) {
       $this->amOnDrupalPage($url);
+    }
+  }
+
+  /**
+   * Return TRUE if table exists.
+   */
+  public function tableExist(string $table_name): bool {
+    try {
+      $this->acceptanceHelperModule->sqlQuery("SELECT 1 FROM $table_name");
+      return TRUE;
+    }
+    catch (\Exception $e) {
+      return FALSE;
     }
   }
 
