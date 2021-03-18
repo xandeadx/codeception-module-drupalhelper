@@ -422,7 +422,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Clear table. Alias for DrupalHelper::truncateTable().
    */
-  public function cleatTable(string $table): void {
+  public function clearTable(string $table): void {
     $this->truncateTable($table);
   }
 
@@ -430,7 +430,16 @@ class DrupalHelper extends \Codeception\Module {
    * Clear cache table.
    */
   public function clearCacheTable(string $bin): void {
-    $this->truncateTable('cache_' . $bin);
+    $this->clearTable('cache_' . $bin);
+  }
+
+  /**
+   * Clear render cache.
+   */
+  public function clearRenderCache(): void {
+    $this->clearCacheTable('render');
+    $this->clearCacheTable('page');
+    $this->clearTable('cachetags');
   }
 
   /**
