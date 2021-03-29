@@ -450,6 +450,18 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Clear all caches.
+   */
+  public function clearAllCaches(): void {
+    $this->rememberCurrentSession();
+    $this->loginAsAdmin();
+    $this->amOnDrupalPage('/admin/config/development/performance');
+    $this->webDriverModule->click('#edit-clear');
+    $this->dontSeeDrupalErrors();
+    $this->restoreRememberedSession();
+  }
+
+  /**
    * Return codeception module settings.
    */
   private function getEnabledModuleSettings(string $module_name, array $settings): ?array {
