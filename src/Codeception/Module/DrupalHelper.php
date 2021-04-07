@@ -235,11 +235,11 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return last added node id.
    */
-  public function grabLastAddedNodeId(string $node_type): int {
+  public function grabLastAddedNodeId(string $node_type = NULL): int {
     return (int)$this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(nid)
       FROM node
-      WHERE type = '$node_type'
+      " . ($node_type ? "WHERE type = '$node_type'" : "") . "
     ")->fetchColumn();
   }
 
@@ -285,18 +285,18 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return term id by name.
    */
-  public function grabTermNameById(string $vocabulary_name, string $term_name): string {
+  public function grabTermNameById(string $term_id): string {
     return $this->acceptanceHelperModule->sqlQuery("
       SELECT name
       FROM taxonomy_term_field_data
-      WHERE vid = '$vocabulary_name' AND name = '$term_name'
+      WHERE tid = '$term_id'
     ")->fetchColumn();
   }
 
   /**
    * Create term and return term id.
    */
-  public function createTerm(string $vocabulary_name, string $term_name, bool $force = FALSE): int {
+  public function createTerm(string $vocabulary_name, string $term_name = NULL, bool $force = FALSE): int {
     if (!$force && ($term_id = $this->grabTermIdByName($vocabulary_name, $term_name))) {
       return $term_id;
     }
@@ -304,12 +304,29 @@ class DrupalHelper extends \Codeception\Module {
     $this->rememberCurrentSession();
     $this->loginAsAdmin();
     $this->amOnDrupalPage('/admin/structure/taxonomy/manage/' . $vocabulary_name . '/add');
-    $this->webDriverModule->fillField('name[0][value]', $term_name);
+    $this->webDriverModule->fillField('name[0][value]', $term_name ?? 'Термин для ' . $this->acceptanceHelperModule->grabTestName());
     $this->webDriverModule->click('.form-actions .form-submit');
     $this->dontSeeDrupalErrors();
     $this->restoreRememberedSession();
 
     return $this->grabLastAddedTermId($vocabulary_name);
+  }
+
+  /**
+   * Delete term.
+   */
+  public function deleteTerm(int $term_id, bool $check = TRUE): void {
+    $this->rememberCurrentSession();
+    $this->loginAsAdmin();
+    $this->amOnDrupalPage('/taxonomy/term/' . $term_id . '/delete');
+    $this->webDriverModule->click('.form-submit');
+
+    if ($check) {
+      $this->dontSeeDrupalErrors();
+      $this->dbModule->dontSeeInDatabase('taxonomy_term_data', ['tid' => $term_id]);
+    }
+
+    $this->restoreRememberedSession();
   }
 
   /**

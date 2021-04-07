@@ -203,4 +203,38 @@ class AcceptanceHelper extends \Codeception\Module {
     return $string;
   }
 
+  /**
+   * Return test name.
+   */
+  public function grabTestName(): string {
+    foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10) as $info) {
+      if (str_starts_with($info['function'], 'test')) {
+        return $info['function'];
+      }
+    }
+
+    return 'unknown';
+  }
+
+  /**
+   * Return host with shema, eg "https://example.test"
+   */
+  public function grabHostWithShema(): string {
+    return rtrim($this->webDriverModule->_getUrl(), '/');
+  }
+
+  /**
+   * Return element inner html.
+   */
+  public function grabElementInnerHtml($selector): string {
+    return $this->webDriverModule->grabAttributeFrom($selector, 'innerHTML');
+  }
+
+  /**
+   * Return random string.
+   */
+  public function generateRandomString(int $length = 8): string {
+    return substr(str_shuffle(md5(microtime())), 0, $length);
+  }
+
 }
