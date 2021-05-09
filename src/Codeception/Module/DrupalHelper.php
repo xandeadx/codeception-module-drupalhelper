@@ -18,9 +18,9 @@ class DrupalHelper extends \Codeception\Module {
 
   protected \Codeception\Module\AcceptanceHelper $acceptanceHelperModule;
 
-  protected $currentUsername = '';
+  protected string $currentUsername = '';
 
-  protected $rememberedUsername = '';
+  protected array $rememberedUsername = [];
 
   /**
    * {@inheritDoc}
@@ -103,7 +103,14 @@ class DrupalHelper extends \Codeception\Module {
    * Goto node page.
    */
   public function amOnNodePage(int $nid): void {
-    $this->amOnDrupalPage($this->grabPathAlias('/node/' . $nid));
+    $this->amOnDrupalPage($this->grabNodeAlias($nid));
+  }
+
+  /**
+   * Goto term page.
+   */
+  public function amOnTermPage(int $term_id): void {
+    $this->amOnDrupalPage($this->grabTermAlias($term_id));
   }
 
   /**
@@ -126,7 +133,7 @@ class DrupalHelper extends \Codeception\Module {
         type = 'php' AND
         variables NOT LIKE '%rename(%/php/twig/%'
     ")->fetchColumn();
-    $this->assertEquals(0, $errors_count);
+    $this->assertEquals(0, $errors_count, 'Watchdog contains php errors.');
   }
 
   /**
@@ -187,21 +194,22 @@ class DrupalHelper extends \Codeception\Module {
    * Remember current user.
    */
   public function rememberCurrentSession(): void {
-    $this->rememberedUsername = $this->currentUsername;
+    $this->rememberedUsername[] = $this->currentUsername;
   }
 
   /**
    * Restore remembered user session.
    */
   public function restoreRememberedSession(): void {
-    if ($this->currentUsername != $this->rememberedUsername) {
-      if ($this->rememberedUsername) {
-        $this->webDriverModule->loadSessionSnapshot('user_' . $this->rememberedUsername);
+    $remembered_username = array_pop($this->rememberedUsername);
+    if ($this->currentUsername != $remembered_username) {
+      if ($remembered_username) {
+        $this->webDriverModule->loadSessionSnapshot('user_' . $remembered_username);
       }
       else {
         $this->logout();
       }
-      $this->currentUsername = $this->rememberedUsername;
+      $this->currentUsername = $remembered_username;
     }
   }
 
@@ -218,7 +226,7 @@ class DrupalHelper extends \Codeception\Module {
    * Open details.
    */
   public function openDetails(string $details_selector): void {
-    $this->webDriverModule->scrollTo(['css' => $details_selector], 0, -30);
+    $this->acceptanceHelperModule->scrollToWithoutAnimation($details_selector, 0, -30);
     if (!$this->webDriverModule->grabAttributeFrom($details_selector, 'open')) {
       $this->webDriverModule->click($details_selector . ' > summary');
     }
@@ -405,6 +413,20 @@ class DrupalHelper extends \Codeception\Module {
   public function grabPathAlias(string $system_path): string {
     $path_alias = $this->acceptanceHelperModule->sqlQuery("SELECT alias FROM path_alias WHERE path = '$system_path'")->fetchColumn();
     return $path_alias ? $path_alias : $system_path;
+  }
+
+  /**
+   * Return node alias.
+   */
+  public function grabNodeAlias(int $node_id): string {
+    return $this->grabPathAlias('/node/' . $node_id);
+  }
+
+  /**
+   * Return term alias.
+   */
+  public function grabTermAlias(int $term_id): string {
+    return $this->grabPathAlias('/taxonomy/term/' . $term_id);
   }
 
   /**

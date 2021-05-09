@@ -110,10 +110,17 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
+   * Return elements attribute array.
+   */
+  public function grabElementsAttribute(string $selector, string $attribute_name): array {
+    return $this->webDriverModule->grabMultiple($selector, $attribute_name);
+  }
+
+  /**
    * Return links hrefs.
    */
   public function grabLinksUrls(string $selector): array {
-    $urls = $this->webDriverModule->grabMultiple($selector, 'href');
+    $urls = $this->grabElementsAttribute($selector, 'href');
     $urls = array_filter($urls, function ($url) {
       return $url && !preg_match('/^[a-z]+:[^\/]/', $url);
     });
@@ -130,6 +137,15 @@ class AcceptanceHelper extends \Codeception\Module {
     }
     else {
       $this->webDriverModule->uncheckOption($checkbox);
+    }
+  }
+
+  /**
+   * Fill checkboxes.
+   */
+  public function fillCheckboxes(array $checkboxes, bool $enabled = TRUE): void {
+    foreach ($checkboxes as $checkbox) {
+      $this->fillCheckbox($checkbox, $enabled);
     }
   }
 
@@ -235,6 +251,29 @@ class AcceptanceHelper extends \Codeception\Module {
    */
   public function generateRandomString(int $length = 8): string {
     return substr(str_shuffle(md5(microtime())), 0, $length);
+  }
+
+  /**
+   * Generate entity label.
+   */
+  public function generateLabel(string $prefix): string {
+    static $counters = [];
+
+    $test_name = $this->grabTestName();
+    $counter_name = $test_name . ':' . $prefix;
+    $counters[$counter_name] = ($counters[$counter_name] ?? 0) + 1;
+
+    return strtr('@prefix для @test_name', [
+      '@prefix' => $prefix . ($counters[$counter_name] > 1 ? ' ' . $counters[$counter_name] : ''),
+      '@test_name' => $test_name,
+    ]);
+  }
+
+  /**
+   * Return number of elements.
+   */
+  public function grabNumberOfElement(string $selector): int {
+    return count($this->webDriverModule->grabMultiple($selector));
   }
 
 }
