@@ -2,6 +2,8 @@
 
 namespace Codeception\Module;
 
+use function GuzzleHttp\Psr7\uri_for;
+
 class DrupalHelper extends \Codeception\Module {
 
   protected $config = [
@@ -86,7 +88,7 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
-   * Goto to drupal page and check errors.
+   * Goto drupal page and check errors.
    */
   public function amOnDrupalPage(string $url): void {
     if (str_contains($url, '://')) {
@@ -97,6 +99,13 @@ class DrupalHelper extends \Codeception\Module {
     }
     $this->webDriverModule->seeElementInDOM('body');
     $this->dontSeeDrupalErrors();
+  }
+
+  /**
+   * Goto front page.
+   */
+  public function amOnFrontPage(): void {
+    $this->amOnDrupalPage('/');
   }
 
   /**
@@ -128,10 +137,10 @@ class DrupalHelper extends \Codeception\Module {
   public function dontSeeWatchdogPhpErrors(): void {
     $errors_count = (int)$this->acceptanceHelperModule->sqlQuery("
       SELECT COUNT(*)
-      FROM watchdog
+      FROM `watchdog`
       WHERE
-        type = 'php' AND
-        variables NOT LIKE '%rename(%/php/twig/%'
+        `type` = 'php' AND
+        `variables` NOT LIKE '%rename(%/php/twig/%'
     ")->fetchColumn();
     $this->assertEquals(0, $errors_count, 'Watchdog contains php errors.');
   }
@@ -216,10 +225,10 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Open vertical tab.
    */
-  public function openVerticalTab(string $id): void {
-    $id = ltrim($id, '#');
-    $this->webDriverModule->scrollTo(['css' => 'a[href="#' . $id . '"]'], 0, -30);
-    $this->webDriverModule->click('a[href="#' . $id . '"]');
+  public function openVerticalTab(string $details_id): void {
+    $details_id = ltrim($details_id, '#');
+    $this->acceptanceHelperModule->scrollToWithoutAnimation('a[href="#' . $details_id . '"]', 0, -30);
+    $this->webDriverModule->click('a[href="#' . $details_id . '"]');
   }
 
   /**
@@ -243,29 +252,48 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return last added node id.
    */
-  public function grabLastAddedNodeId(string $node_type = NULL): int {
+  public function grabLastAddedNodeId(string $node_type = null): int {
     return (int)$this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(nid)
-      FROM node
-      " . ($node_type ? "WHERE type = '$node_type'" : "") . "
+      FROM `node`
+      " . ($node_type ? "WHERE `type` = '$node_type'" : "") . "
     ")->fetchColumn();
   }
 
   /**
    * Delete node.
    */
-  public function deleteNode(int $nid, bool $check = TRUE): void {
-    $this->rememberCurrentSession();
-    $this->loginAsAdmin();
-    $this->amOnDrupalPage("/node/$nid/delete");
-    $this->webDriverModule->click('.form-submit');
+  public function deleteNode(int $nid, bool $use_browser = false, bool $check_result = true): void {
+    if ($use_browser) {
+      $this->rememberCurrentSession();
+      $this->loginAsAdmin();
+      $this->amOnDrupalPage("/node/$nid/delete");
+      $this->webDriverModule->click('.form-submit');
 
-    if ($check) {
-      $this->dontSeeDrupalErrors();
-      $this->dbModule->dontSeeInDatabase('node', ['nid' => $nid]);
+      if ($check_result) {
+        $this->dontSeeDrupalErrors();
+        $this->dbModule->dontSeeInDatabase('node', ['nid' => $nid]);
+      }
+
+      $this->restoreRememberedSession();
     }
+    else {
+      $this->runDrush('entity-delete node ' . (int)$nid);
+    }
+  }
 
-    $this->restoreRememberedSession();
+  /**
+   * Delete nodes.
+   */
+  public function deleteNodes(array $nodes_ids, bool $use_browser = false, bool $check_result = true): void {
+    if ($use_browser) {
+      foreach ($nodes_ids as $node_id) {
+        $this->deleteNode($node_id, $use_browser, $check_result);
+      }
+    }
+    else {
+      $this->runDrush('entity-delete node ' . implode(',', $nodes_ids));
+    }
   }
 
   /**
@@ -273,9 +301,9 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function grabLastAddedTermId(string $vocabulary_name): int {
     return (int)$this->acceptanceHelperModule->sqlQuery("
-      SELECT MAX(tid)
-      FROM taxonomy_term_data
-      WHERE vid = '$vocabulary_name'
+      SELECT MAX(`tid`)
+      FROM `taxonomy_term_data`
+      WHERE `vid` = '$vocabulary_name'
     ")->fetchColumn();
   }
 
@@ -284,9 +312,9 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function grabTermIdByName(string $vocabulary_name, string $term_name): int {
     return (int)$this->acceptanceHelperModule->sqlQuery("
-      SELECT MAX(tid)
-      FROM taxonomy_term_field_data
-      WHERE vid = '$vocabulary_name' AND name = '$term_name'
+      SELECT MAX(`tid`)
+      FROM `taxonomy_term_field_data`
+      WHERE `vid` = '$vocabulary_name' AND `name` = '$term_name'
     ")->fetchColumn();
   }
 
@@ -295,16 +323,16 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function grabTermNameById(string $term_id): string {
     return $this->acceptanceHelperModule->sqlQuery("
-      SELECT name
-      FROM taxonomy_term_field_data
-      WHERE tid = '$term_id'
+      SELECT `name`
+      FROM `taxonomy_term_field_data`
+      WHERE `tid` = '$term_id'
     ")->fetchColumn();
   }
 
   /**
    * Create term and return term id.
    */
-  public function createTerm(string $vocabulary_name, string $term_name = NULL, bool $force = FALSE): int {
+  public function createTerm(string $vocabulary_name, string $term_name = null, bool $force = false): int {
     if (!$force && ($term_id = $this->grabTermIdByName($vocabulary_name, $term_name))) {
       return $term_id;
     }
@@ -323,25 +351,47 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Delete term.
    */
-  public function deleteTerm(int $term_id, bool $check = TRUE): void {
-    $this->rememberCurrentSession();
-    $this->loginAsAdmin();
-    $this->amOnDrupalPage('/taxonomy/term/' . $term_id . '/delete');
-    $this->webDriverModule->click('.form-submit');
+  public function deleteTerm(int $term_id, bool $use_browser = false, bool $check_result = true): void {
+    if ($use_browser) {
+      $this->rememberCurrentSession();
+      $this->loginAsAdmin();
+      $this->amOnDrupalPage('/taxonomy/term/' . $term_id . '/delete');
+      $this->webDriverModule->click('.form-submit');
 
-    if ($check) {
-      $this->dontSeeDrupalErrors();
-      $this->dbModule->dontSeeInDatabase('taxonomy_term_data', ['tid' => $term_id]);
+      if ($check_result) {
+        $this->dontSeeDrupalErrors();
+        $this->dbModule->dontSeeInDatabase('taxonomy_term_data', ['tid' => $term_id]);
+      }
+
+      $this->restoreRememberedSession();
     }
+    else {
+      $this->runDrush('entity-delete taxonomy_term ' . $term_id);
+    }
+  }
 
-    $this->restoreRememberedSession();
+  /**
+   * Delete terms.
+   */
+  public function deleteTerms(array $terms_ids, bool $use_browser = false, bool $check_result = true): void {
+    if ($use_browser) {
+      foreach ($terms_ids as $term_id) {
+        $this->deleteTerm($term_id, $use_browser, $check_result);
+      }
+    }
+    else {
+      $this->runDrush('entity-delete taxonomy_term' . implode(',', $terms_ids));
+    }
   }
 
   /**
    * Return last added menu item id.
    */
   public function grabLastAddedMenuItemId(): int {
-    return $this->acceptanceHelperModule->sqlQuery("SELECT MAX(id) FROM menu_link_content")->fetchColumn();
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT MAX(`id`)
+      FROM `menu_link_content`
+    ")->fetchColumn();
   }
 
   /**
@@ -367,21 +417,31 @@ class DrupalHelper extends \Codeception\Module {
    * Return last added file id.
    */
   public function grabLastAddedFileId(): int {
-    return $this->acceptanceHelperModule->sqlQuery("SELECT MAX(fid) FROM file_managed")->fetchColumn();
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT MAX(`fid`)
+      FROM `file_managed`
+    ")->fetchColumn();
   }
 
   /**
    * Return file info from file_managed table.
    */
   public function grabFileInfoFromDatabase(int $file_id): array {
-    return $this->acceptanceHelperModule->sqlQuery("SELECT * FROM file_managed WHERE fid = $file_id")->fetch();
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT *
+      FROM `file_managed`
+      WHERE `fid` = $file_id
+    ")->fetch();
   }
 
   /**
    * Return last added comment id.
    */
   public function grabLastAddedCommentId(): int {
-    return $this->acceptanceHelperModule->sqlQuery("SELECT MAX(cid) FROM comment")->fetchColumn();
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT MAX(`cid`)
+      FROM `comment`
+    ")->fetchColumn();
   }
 
   /**
@@ -402,7 +462,11 @@ class DrupalHelper extends \Codeception\Module {
    * Return user name by user id.
    */
   public function grabUserNameById(int $user_id): string {
-    return $this->acceptanceHelperModule->sqlQuery("SELECT name FROM users WHERE uid = $user_id")->fetchColumn();
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT `name`
+      FROM `users`
+      WHERE `uid` = $user_id
+    ")->fetchColumn();
   }
 
   /**
@@ -411,7 +475,11 @@ class DrupalHelper extends \Codeception\Module {
    * @param string $system_path System path starting with "/", eg "/node/123"
    */
   public function grabPathAlias(string $system_path): string {
-    $path_alias = $this->acceptanceHelperModule->sqlQuery("SELECT alias FROM path_alias WHERE path = '$system_path'")->fetchColumn();
+    $path_alias = $this->acceptanceHelperModule->sqlQuery("
+      SELECT `alias`
+      FROM `path_alias`
+      WHERE `path` = '$system_path'
+    ")->fetchColumn();
     return $path_alias ? $path_alias : $system_path;
   }
 
@@ -443,7 +511,7 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function tableExist(string $table_name): bool {
     try {
-      $this->acceptanceHelperModule->sqlQuery("SELECT 1 FROM $table_name");
+      $this->acceptanceHelperModule->sqlQuery("SELECT 1 FROM `$table_name`");
       return TRUE;
     }
     catch (\Exception $e) {
@@ -454,8 +522,8 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Truncate table.
    */
-  public function truncateTable(string $table): void {
-    $this->acceptanceHelperModule->sqlQuery("TRUNCATE TABLE $table");
+  public function truncateTable(string $table_name): void {
+    $this->acceptanceHelperModule->sqlQuery("TRUNCATE TABLE `$table_name`");
   }
 
   /**
@@ -498,6 +566,17 @@ class DrupalHelper extends \Codeception\Module {
     $this->webDriverModule->click('#edit-clear');
     $this->dontSeeDrupalErrors();
     $this->restoreRememberedSession();
+  }
+
+  /**
+   * Set node counter.
+   */
+  public function setNodeCounter(int $node_id, int $total_count): void {
+    $this->acceptanceHelperModule->sqlQuery("
+      INSERT INTO `node_counter` (`nid`, `totalcount`, `timestamp`)
+      VALUES ($node_id, $total_count, UNIX_TIMESTAMP())
+      ON DUPLICATE KEY UPDATE `totalcount` = $total_count
+    ")->execute();
   }
 
   /**
