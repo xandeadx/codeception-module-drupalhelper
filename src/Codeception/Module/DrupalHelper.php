@@ -269,16 +269,15 @@ class DrupalHelper extends \Codeception\Module {
       $this->loginAsAdmin();
       $this->amOnDrupalPage("/node/$nid/delete");
       $this->webDriverModule->click('.form-submit');
-
-      if ($check_result) {
-        $this->dontSeeDrupalErrors();
-        $this->dbModule->dontSeeInDatabase('node', ['nid' => $nid]);
-      }
-
       $this->restoreRememberedSession();
     }
     else {
       $this->runDrush('entity-delete node ' . (int)$nid);
+    }
+
+    if ($check_result) {
+      $this->dontSeeDrupalErrors();
+      $this->dbModule->dontSeeInDatabase('node', ['nid' => $nid]);
     }
   }
 
@@ -294,6 +293,13 @@ class DrupalHelper extends \Codeception\Module {
     else {
       $this->runDrush('entity-delete node ' . implode(',', $nodes_ids));
     }
+  }
+
+  /**
+   * Delete nodes by type.
+   */
+  public function deleteNodesByType(string $node_type): void {
+    $this->runDrush('entity-delete node --bundle=' . $node_type);
   }
 
   /**
