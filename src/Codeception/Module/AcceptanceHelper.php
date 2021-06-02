@@ -250,7 +250,7 @@ class AcceptanceHelper extends \Codeception\Module {
    * Return element inner html.
    */
   public function grabElementInnerHtml($selector): string {
-    return $this->webDriverModule->grabAttributeFrom($selector, 'innerHTML');
+    return $this->webDriverModule->executeJS("return document.querySelector('$selector').innerHTML");
   }
 
   /**
