@@ -283,4 +283,12 @@ class AcceptanceHelper extends \Codeception\Module {
     return count($this->webDriverModule->grabMultiple($selector));
   }
 
+  /**
+   * Select option by value.
+   */
+  public function selectOptionByValue(string $select_selector, string $option_value): void {
+    $value_text = $this->webDriverModule->grabTextFrom($select_selector . ' option[value="' . $option_value . '"]');
+    $this->webDriverModule->selectOption($select_selector, $value_text);
+  }
+
 }

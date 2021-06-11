@@ -123,6 +123,20 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Goto term add page.
+   */
+  public function amOnTermAddPage(string $vocabulary_id): void {
+    $this->amOnDrupalPage("/admin/structure/taxonomy/manage/$vocabulary_id/add");
+  }
+
+  /**
+   * Goto term edit page.
+   */
+  public function amOnTermEditPage(string $term_id): void {
+    $this->amOnDrupalPage("/taxonomy/term/$term_id/edit");
+  }
+
+  /**
    * Dont see error message.
    */
   public function dontSeeErrorMessage(): void {
