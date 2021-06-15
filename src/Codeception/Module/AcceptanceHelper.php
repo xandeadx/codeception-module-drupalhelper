@@ -284,11 +284,37 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
-   * Select option by value.
+   * Uncheck checkboxes.
    */
-  public function selectOptionByValue(string $select_selector, string $option_value): void {
-    $value_text = $this->webDriverModule->grabTextFrom($select_selector . ' option[value="' . $option_value . '"]');
-    $this->webDriverModule->selectOption($select_selector, $value_text);
+  public function uncheckCheckboxes(string $checkboxes_selector): void {
+    $checkoxes = $this->webDriverModule->_findElements($checkboxes_selector);
+    foreach ($checkoxes as $checkbox) {
+      $this->webDriverModule->uncheckOption($checkbox);
+    }
+  }
+
+  /**
+   * Check checkboxes.
+   */
+  public function checkCheckboxes(string $checkboxes_selector): void {
+    $checkoxes = $this->webDriverModule->_findElements($checkboxes_selector);
+    foreach ($checkoxes as $checkbox) {
+      $this->webDriverModule->checkOption($checkbox);
+    }
+  }
+
+  /**
+   * Uncheck options. Alias for uncheckCheckboxes().
+   */
+  public function uncheckOptions(string $options_selector): void {
+    $this->uncheckCheckboxes($options_selector);
+  }
+
+  /**
+   * Check options. Alias for checkCheckboxes().
+   */
+  public function checkOptions(string $options_selector): void {
+    $this->checkCheckboxes($options_selector);
   }
 
 }
