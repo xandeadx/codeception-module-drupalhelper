@@ -141,11 +141,9 @@ class DrupalHelper extends \Codeception\Module {
    */
   public function dontSeeErrorMessage(): void {
     foreach ($this->config['error_message_selectors'] as $error_message_selector) {
-      $this->assertLessThan(
-        1,
-        $this->acceptanceHelperModule->grabNumberOfElements($error_message_selector),
-        'Page contains error message: ' . $this->webDriverModule->grabTextFrom($error_message_selector)
-      );
+      if ($this->acceptanceHelperModule->grabNumberOfElements($error_message_selector) > 0) {
+        $this->fail('Page contains error message: ' . $this->webDriverModule->grabTextFrom($error_message_selector));
+      }
     }
   }
 
