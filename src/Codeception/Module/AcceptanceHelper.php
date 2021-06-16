@@ -279,7 +279,7 @@ class AcceptanceHelper extends \Codeception\Module {
   /**
    * Return number of elements.
    */
-  public function grabNumberOfElement(string $selector): int {
+  public function grabNumberOfElements(string $selector): int {
     return count($this->webDriverModule->grabMultiple($selector));
   }
 
