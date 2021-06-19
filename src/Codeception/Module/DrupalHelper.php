@@ -12,6 +12,7 @@ class DrupalHelper extends \Codeception\Module {
     'admin_password' => 'admin',
     'error_message_selectors' => ['.status-message--error', '.messages--error'],
     'exclude_data_tables' => [],
+    '404_page_text' => 'Page not found',
   ];
 
   protected \Codeception\Module\WebDriver $webDriverModule;
@@ -165,6 +166,9 @@ class DrupalHelper extends \Codeception\Module {
    * Dont see flash errors and watchdog errors.
    */
   public function dontSeeDrupalErrors(): void {
+    if ($this->config['404_page_text']) {
+      $this->webDriverModule->dontSee($this->config['404_page_text']);
+    }
     $this->dontSeeErrorMessage();
     $this->dontSeeWatchdogPhpErrors();
   }
