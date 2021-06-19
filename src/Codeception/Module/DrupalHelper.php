@@ -91,15 +91,17 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Goto drupal page and check errors.
    */
-  public function amOnDrupalPage(string $url): void {
+  public function amOnDrupalPage(string $url, bool $check_body_exists = TRUE, bool $check_404 = TRUE, bool $check_error_message = TRUE, bool $check_watchdog_errors = TRUE): void {
     if (str_contains($url, '://')) {
       $this->webDriverModule->amOnUrl($url);
     }
     else {
       $this->webDriverModule->amOnPage($url);
     }
-    $this->webDriverModule->seeElementInDOM('body');
-    $this->dontSeeDrupalErrors();
+    if ($check_body_exists) {
+      $this->webDriverModule->seeElementInDOM('body');
+    }
+    $this->dontSeeDrupalErrors($check_404, $check_error_message, $check_watchdog_errors);
   }
 
   /**
@@ -165,12 +167,23 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Dont see flash errors and watchdog errors.
    */
-  public function dontSeeDrupalErrors(): void {
-    if ($this->config['404_page_text']) {
+  public function dontSeeDrupalErrors(bool $check_404 = TRUE, bool $check_error_message = TRUE, bool $check_watchdog_errors = TRUE): void {
+    if ($check_404 && $this->config['404_page_text']) {
       $this->webDriverModule->dontSee($this->config['404_page_text']);
     }
-    $this->dontSeeErrorMessage();
-    $this->dontSeeWatchdogPhpErrors();
+    if ($check_error_message) {
+      $this->dontSeeErrorMessage();
+    }
+    if ($check_watchdog_errors) {
+      $this->dontSeeWatchdogPhpErrors();
+    }
+  }
+
+  /**
+   * See 404 page.
+   */
+  public function see404Page(): void {
+    $this->webDriverModule->see($this->config['404_page_text']);
   }
 
   /**
