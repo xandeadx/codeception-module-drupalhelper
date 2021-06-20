@@ -332,4 +332,33 @@ class AcceptanceHelper extends \Codeception\Module {
     $this->webDriverModule->wait(0.3);
   }
 
+  /**
+   * Return TRUE if element is located in viewport.
+   */
+  public function grabIsElementInViewport(string $selector): bool {
+    return $this->webDriverModule->executeJS("
+      var element_rect = document.querySelector('$selector').getBoundingClientRect();
+      return (
+        element_rect.top >= 0 &&
+        element_rect.left >= 0 &&
+        element_rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        element_rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+      );
+    ");
+  }
+
+  /**
+   * See element in viewport.
+   */
+  public function seeElementInViewport(string $selector): void {
+    $this->assertTrue($this->grabIsElementInViewport($selector), 'Element "' . $selector . '" is not in viewport.');
+  }
+
+  /**
+   * Dont see element in viewport.
+   */
+  public function dontSeeElementInViewport(string $selector): void {
+    $this->assertFalse($this->grabIsElementInViewport($selector), 'Element "' . $selector . '" in viewport.');
+  }
+
 }
