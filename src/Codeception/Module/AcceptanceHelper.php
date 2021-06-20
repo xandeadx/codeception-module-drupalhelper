@@ -9,6 +9,12 @@ class AcceptanceHelper extends \Codeception\Module {
   protected $config = [
     'page_title_selector' => '.page-title',
     'breadcrumb_item_selector' => '.breadcrumb__item',
+    'devices_size' => [
+      'mobile' => [
+        'width' => 600,
+        'height' => 900,
+      ],
+    ],
   ];
 
   protected \Codeception\Module\WebDriver $webDriverModule;
@@ -315,6 +321,15 @@ class AcceptanceHelper extends \Codeception\Module {
    */
   public function checkOptions(string $options_selector): void {
     $this->checkCheckboxes($options_selector);
+  }
+
+  /**
+   * Resize window.
+   */
+  public function changeDevice(string $device_name = 'mobile'): void {
+    $device_size = $this->config['devices_size'][$device_name];
+    $this->webDriverModule->resizeWindow($device_size['width'], $device_size['height']);
+    $this->webDriverModule->wait(0.3);
   }
 
 }
