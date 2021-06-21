@@ -219,6 +219,13 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
+   * Scroll to top.
+   */
+  public function scrollToTop(): void {
+    $this->scrollToWithoutAnimation('body');
+  }
+
+  /**
    * Generate unique string.
    */
   public function generateString(string $string, string $function = '', bool $add_time = TRUE): string {
