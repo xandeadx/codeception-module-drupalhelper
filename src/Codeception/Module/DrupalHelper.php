@@ -220,7 +220,7 @@ class DrupalHelper extends \Codeception\Module {
       $this->webDriverModule->deleteSessionSnapshot('user_' . $this->grabCurretUserName());
     }
     else {
-      $this->webDriverModule->webDriver->manage()->deleteAllCookies();
+      $this->deleteAllCookies();
     }
     $this->currentUsername = '';
   }
@@ -616,6 +616,13 @@ class DrupalHelper extends \Codeception\Module {
       VALUES ($node_id, $total_count, UNIX_TIMESTAMP())
       ON DUPLICATE KEY UPDATE `totalcount` = $total_count
     ")->execute();
+  }
+
+  /**
+   * Delete all cookies.
+   */
+  public function deleteAllCookies(): void {
+    $this->webDriverModule->webDriver->manage()->deleteAllCookies();
   }
 
   /**
