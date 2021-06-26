@@ -9,6 +9,7 @@ class AcceptanceHelper extends \Codeception\Module {
   protected $config = [
     'page_title_selector' => '.page-title',
     'breadcrumb_item_selector' => '.breadcrumb__item',
+    'sticky_header_height' => 0,
     'devices_size' => [
       'mobile' => [
         'width' => 600,
@@ -211,10 +212,14 @@ class AcceptanceHelper extends \Codeception\Module {
   /**
    * Instant scroll (without animation).
    */
-  public function scrollToWithoutAnimation($selector, $offsetX = 0, $offsetY = 0): void {
+  public function scrollToWithoutAnimation(string $selector, int $offsetX = NULL, int $offsetY = NULL): void {
+    if ($offsetY === NULL) {
+      $offsetY = $this->config['sticky_header_height'] * -1;
+    }
+
     $element = $this->webDriverModule->webDriver->findElement(WebDriverBy::cssSelector($selector));
-    $x = $element->getLocation()->getX() + $offsetX;
-    $y = $element->getLocation()->getY() + $offsetY;
+    $x = $element->getLocation()->getX() + (int)$offsetX;
+    $y = $element->getLocation()->getY() + (int)$offsetY;
     $this->webDriverModule->executeJS("window.scrollTo({top: $y, left: $x, behavior: 'instant'})");
   }
 
