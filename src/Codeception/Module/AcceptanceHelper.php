@@ -336,6 +336,20 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
+   * See checkboxes is checked.
+   *
+   * Example:
+   * <code>
+   * $I->seeCheckboxesIsChecked([1, 2, 3], 'example-input[@value]');
+   * </code>
+   */
+  public function seeCheckboxesIsChecked(array $values, string $checkbox_template): void {
+    foreach ($values as $value) {
+      $this->webDriverModule->seeCheckboxIsChecked(str_replace('@value', $value, $checkbox_template));
+    }
+  }
+
+  /**
    * Resize window.
    */
   public function changeDevice(string $device_name): void {
