@@ -373,4 +373,14 @@ class AcceptanceHelper extends \Codeception\Module {
     $this->assertFalse($this->grabIsElementInViewport($selector), 'Element "' . $selector . '" in viewport.');
   }
 
+  /**
+   * See canonical.
+   *
+   * @param string $url Relative url without domain
+   */
+  public function seeCanonical(string $url): void {
+    $host_with_schema = $this->grabHostWithShema();
+    $this->seeElementAttribute('link[rel="canonical"]', 'href', $host_with_schema . $url);
+  }
+
 }
