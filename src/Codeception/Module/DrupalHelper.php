@@ -294,6 +294,28 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Return node title by id.
+   */
+  public function grabNodeTitleById(int $node_id): string {
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT title
+      FROM `node_field_data`
+      WHERE nid = $node_id
+    ")->fetchColumn();
+  }
+
+  /**
+   * Return node title by id.
+   */
+  public function grabNodeIdByTitle(int $title, string $node_type): string {
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT nid
+      FROM `node_field_data`
+      WHERE title = '$title' AND type = '$node_type'
+    ")->fetchColumn();
+  }
+
+  /**
    * Delete node.
    */
   public function deleteNode(int $nid, bool $use_browser = false, bool $check_result = true): void {
