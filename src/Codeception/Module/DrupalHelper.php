@@ -515,7 +515,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return current user name.
    */
-  public function grabCurretUserName(): string {
+  public function grabCurrentUsernameFromBrowser(): string {
     return $this->gragUserNameById($this->grabCurrentUserId());
   }
 
