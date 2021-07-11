@@ -307,11 +307,13 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return node title by id.
    */
-  public function grabNodeIdByTitle(int $title, string $node_type): string {
+  public function grabNodeIdByTitle(string $title, string $node_type): string {
     return $this->acceptanceHelperModule->sqlQuery("
       SELECT nid
       FROM `node_field_data`
       WHERE title = '$title' AND type = '$node_type'
+      ORDER BY nid DESC
+      LIMIT 1
     ")->fetchColumn();
   }
 
