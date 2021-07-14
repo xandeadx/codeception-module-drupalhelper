@@ -231,20 +231,6 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
-   * Generate unique string.
-   */
-  public function generateString(string $string, string $function = '', bool $add_time = TRUE): string {
-    if ($function) {
-      $string .= ' ' . $function;
-    }
-    if ($add_time) {
-      $string .= ' ' . date(DATE_ATOM);
-    }
-
-    return $string;
-  }
-
-  /**
    * Return test name.
    */
   public function grabTestName(): string {
@@ -279,19 +265,27 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
+   * Return random letters.
+   */
+  public function generateRandomLetters(int $length = 8): string {
+    return substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, $length);
+  }
+
+  /**
    * Generate entity label.
    */
-  public function generateLabel(string $prefix): string {
+  public function generateLabel(string $prefix, bool $add_random_string = TRUE): string {
     static $counters = [];
 
     $test_name = $this->grabTestName();
     $counter_name = $test_name . ':' . $prefix;
     $counters[$counter_name] = ($counters[$counter_name] ?? 0) + 1;
 
-    return strtr('@prefix для @test_name', [
+    return trim(strtr('@prefix для @test_name @random', [
       '@prefix' => $prefix . ($counters[$counter_name] > 1 ? ' ' . $counters[$counter_name] : ''),
       '@test_name' => $test_name,
-    ]);
+      '@random' => $add_random_string ? $this->generateRandomLetters(4) : '',
+    ]));
   }
 
   /**
