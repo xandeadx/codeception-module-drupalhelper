@@ -190,13 +190,13 @@ class DrupalHelper extends \Codeception\Module {
    * Login as $username.
    */
   public function login(string $username, string $password): void {
-    $this->currentUsername = $username;
-
     if ($this->acceptanceHelperModule->grabCurrentDomain() != $this->acceptanceHelperModule->getConfigDomain()) {
       $this->amOnDrupalPage('/user/login');
     }
 
-    if ($this->webDriverModule->loadSessionSnapshot('user_' . $username)) {
+    $session_key = 'user:' . $username;
+
+    if ($this->webDriverModule->loadSessionSnapshot($session_key)) {
       return;
     }
 
@@ -205,7 +205,8 @@ class DrupalHelper extends \Codeception\Module {
     $this->webDriverModule->fillField('.user-login-form input[name="pass"]', $password);
     $this->webDriverModule->click('.user-login-form .form-submit');
     $this->dontSeeDrupalErrors();
-    $this->webDriverModule->saveSessionSnapshot('user_' . $username);
+    $this->webDriverModule->saveSessionSnapshot($session_key);
+    $this->currentUsername = $username;
   }
 
   /**
@@ -221,9 +222,12 @@ class DrupalHelper extends \Codeception\Module {
   public function logout(bool $delete_session = FALSE): void {
     if ($delete_session) {
       $this->amOnDrupalPage('/user/logout');
-      $this->webDriverModule->deleteSessionSnapshot('user_' . $this->grabCurretUserName());
+      $this->webDriverModule->deleteSessionSnapshot('user:' . $this->grabCurretUserName());
     }
     else {
+      if ($this->acceptanceHelperModule->grabCurrentDomain() != $this->acceptanceHelperModule->getConfigDomain()) {
+        $this->amOnFrontPage();
+      }
       $this->deleteAllCookies();
     }
     $this->currentUsername = '';
