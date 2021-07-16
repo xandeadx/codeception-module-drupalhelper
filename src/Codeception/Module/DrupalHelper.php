@@ -192,6 +192,10 @@ class DrupalHelper extends \Codeception\Module {
   public function login(string $username, string $password): void {
     $this->currentUsername = $username;
 
+    if ($this->acceptanceHelperModule->grabCurrentDomain() != $this->acceptanceHelperModule->getConfigDomain()) {
+      $this->amOnDrupalPage('/user/login');
+    }
+
     if ($this->webDriverModule->loadSessionSnapshot('user_' . $username)) {
       return;
     }

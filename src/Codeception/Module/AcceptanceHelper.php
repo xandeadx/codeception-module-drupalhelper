@@ -244,10 +244,48 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
-   * Return host with shema, eg "https://example.test"
+   * Return config domain, eg "example.test".
    */
-  public function grabHostWithShema(): string {
+  public function getConfigDomain(): string {
+    return parse_url($this->webDriverModule->_getUrl(), PHP_URL_HOST);
+  }
+
+  /**
+   * Return config hostname, eg "example.test".
+   */
+  public function getConfigHost(): string {
+    return $this->getConfigDomain();
+  }
+
+  /**
+   * Return from config host with shema, eg "https://example.test"
+   */
+  public function getConfigDomainWithShema(): string {
     return rtrim($this->webDriverModule->_getUrl(), '/');
+  }
+
+  /**
+   * Return from config host with shema, eg "https://example.test"
+   */
+  public function getConfigHostWithShema(): string {
+    return $this->getConfigDomainWithShema();
+  }
+
+  /**
+   * Return current opened domain, eg "example.test".
+   */
+  public function grabCurrentDomain(): ?string {
+    if ($current_url = $this->webDriverModule->webDriver->getCurrentURL()) {
+      return parse_url($current_url, PHP_URL_HOST);
+    }
+    return NULL;
+  }
+
+  /**
+   * Return current opened hostname, eg "example.test".
+   */
+  public function grabCurrentHost(): ?string {
+    return $this->grabCurrentDomain();
   }
 
   /**
