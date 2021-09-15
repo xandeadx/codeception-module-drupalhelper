@@ -425,7 +425,7 @@ class AcceptanceHelper extends \Codeception\Module {
    * @param string $url Relative url without domain
    */
   public function seeCanonical(string $url): void {
-    $host_with_schema = $this->grabHostWithShema();
+    $host_with_schema = $this->getConfigHostWithShema();
     $this->seeElementAttribute('link[rel="canonical"]', 'href', $host_with_schema . $url);
   }
 
