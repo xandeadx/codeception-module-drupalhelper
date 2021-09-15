@@ -571,9 +571,9 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Open each URL and check page for Drupal errors.
    */
-  public function testDrupalPages(array $urls): void {
+  public function testDrupalPages(array $urls, bool $check_body_exists = TRUE, bool $check_404 = TRUE, bool $check_error_message = TRUE, bool $check_watchdog_errors = TRUE): void {
     foreach ($urls as $url) {
-      $this->amOnDrupalPage($url);
+      $this->amOnDrupalPage($url, $check_body_exists, $check_404, $check_error_message, $check_watchdog_errors);
     }
   }
 
