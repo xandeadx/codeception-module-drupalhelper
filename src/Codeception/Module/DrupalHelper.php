@@ -197,6 +197,7 @@ class DrupalHelper extends \Codeception\Module {
     $session_key = 'user:' . $username;
 
     if ($this->webDriverModule->loadSessionSnapshot($session_key)) {
+      $this->currentUsername = $username;
       return;
     }
 
@@ -519,7 +520,7 @@ class DrupalHelper extends \Codeception\Module {
    * Return current user id.
    */
   public function grabCurrentUserId(): int {
-    return $this->webDriverModule->executeJS('return drupalSettings.user.uid;');
+    return (int)$this->webDriverModule->executeJS('return drupalSettings.user.uid;');
   }
 
   /**
