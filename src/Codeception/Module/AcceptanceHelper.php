@@ -199,7 +199,7 @@ class AcceptanceHelper extends \Codeception\Module {
    */
   public function waitForJqueryDialog(): void {
     $this->webDriverModule->waitForElement('.ui-dialog');
-    $this->webDriverModule->wait(0.5); // Wait for animation end
+    $this->webDriverModule->wait(1); // Wait for animation end
   }
 
   /**
@@ -312,17 +312,17 @@ class AcceptanceHelper extends \Codeception\Module {
   /**
    * Generate entity label.
    */
-  public function generateLabel(string $prefix, bool $add_random_string = TRUE): string {
+  public function generateLabel(string $label, bool $add_unique_suffix = TRUE): string {
     static $counters = [];
 
     $test_name = $this->grabTestName();
-    $counter_name = $test_name . ':' . $prefix;
+    $counter_name = $test_name . ':' . $label;
     $counters[$counter_name] = ($counters[$counter_name] ?? 0) + 1;
 
-    return trim(strtr('@prefix для @test_name @random', [
-      '@prefix' => $prefix . ($counters[$counter_name] > 1 ? ' ' . $counters[$counter_name] : ''),
+    return trim(strtr('@label для @test_name @unique_suffix', [
+      '@label' => $label . ($counters[$counter_name] > 1 ? ' ' . $counters[$counter_name] : ''),
       '@test_name' => $test_name,
-      '@random' => $add_random_string ? $this->generateRandomLetters(4) : '',
+      '@unique_suffix' => $add_unique_suffix ? date('Y-m-d H:i:s') . ' ' . $this->generateRandomLetters(3) : '',
     ]));
   }
 
@@ -387,7 +387,7 @@ class AcceptanceHelper extends \Codeception\Module {
   public function changeDevice(string $device_name): void {
     $device_size = $this->config['devices_size'][$device_name];
     $this->webDriverModule->resizeWindow($device_size['width'], $device_size['height']);
-    $this->webDriverModule->wait(0.3);
+    $this->webDriverModule->wait(1);
   }
 
   /**

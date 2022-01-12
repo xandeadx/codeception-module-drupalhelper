@@ -351,6 +351,10 @@ class DrupalHelper extends \Codeception\Module {
    * Delete nodes.
    */
   public function deleteNodes(array $nodes_ids, bool $use_browser = false, bool $check_result = true): void {
+    if (!$nodes_ids) {
+      return;
+    }
+
     if ($use_browser) {
       foreach ($nodes_ids as $node_id) {
         $this->deleteNode($node_id, $use_browser, $check_result);
