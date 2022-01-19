@@ -663,6 +663,13 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Clear watchdog.
+   */
+  public function clearWatchdog(): void {
+    $this->truncateTable('watchdog');
+  }
+
+  /**
    * Return codeception module settings.
    */
   private function getEnabledModuleSettings(string $module_name, array $settings): ?array {
