@@ -80,12 +80,14 @@ class DrupalHelper extends \Codeception\Module {
    * Run cron.
    */
   public function runCron(): void {
-    $this->rememberCurrentSession();
-    $this->loginAsAdmin();
-    $this->amOnDrupalPage('/admin/config/system/cron');
-    $this->webDriverModule->click('#edit-run');
-    $this->dontSeeDrupalErrors();
-    $this->restoreRememberedSession();
+    $this->runDrush('cron');
+  }
+
+  /**
+   * Enable Drupal module.
+   */
+  public function enableDrupalModule(string $module_name): void {
+    $this->runDrush('pm-enable ' . $module_name);
   }
 
   /**
@@ -478,6 +480,16 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Return menu item id by title.
+   */
+  public function grabMenuItemIdByTitle(string $menu_name, string $title): int {
+    return (int)$this->dbModule->grabFromDatabase('menu_link_content_data', 'id', [
+      'menu_name' => $menu_name,
+      'title' => $title,
+    ]);
+  }
+
+  /**
    * Delete menu item.
    */
   public function deleteMenuItem(int $menu_item_id): void {
@@ -485,6 +497,19 @@ class DrupalHelper extends \Codeception\Module {
     $this->loginAsAdmin();
     $this->amOnDrupalPage('/admin/structure/menu/item/' . $menu_item_id . '/delete');
     $this->webDriverModule->click('.form-actions .form-submit');
+    $this->dontSeeDrupalErrors();
+    $this->restoreRememberedSession();
+  }
+
+  /**
+   * Set menu item weight.
+   */
+  public function setMenuItemWeight(int $menu_item_id, int $weight): void {
+    $this->rememberCurrentSession();
+    $this->loginAsAdmin();
+    $this->amOnDrupalPage("/admin/structure/menu/item/$menu_item_id/edit");
+    $this->webDriverModule->fillField('weight[0][value]', (string)$weight);
+    $this->webDriverModule->click('.form-submit');
     $this->dontSeeDrupalErrors();
     $this->restoreRememberedSession();
   }
