@@ -695,6 +695,16 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Return last added contact message id.
+   */
+  public function grabLastAddedContactMessageId(): int {
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT MAX(`id`)
+      FROM `contact_message`
+    ")->fetchColumn();
+  }
+
+  /**
    * Return codeception module settings.
    */
   private function getEnabledModuleSettings(string $module_name, array $settings): ?array {
