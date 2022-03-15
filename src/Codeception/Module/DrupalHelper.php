@@ -408,6 +408,26 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
+   * Return terms by vocabulary.
+   *
+   * @return array Format:
+   * <code>
+   * [
+   *   1 => 'Term 1',
+   *   2 => 'Term 2',
+   * ]
+   * </code>
+   */
+  public function grabTermsByVocabulary(string $vocabulary_machine_name): array {
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT tid, name
+      FROM taxonomy_term_field_data
+      WHERE vid = '$vocabulary_machine_name'
+      ORDER BY weight
+    ")->fetchAll(\PDO::FETCH_KEY_PAIR);
+  }
+
+  /**
    * Create term and return term id.
    */
   public function createTerm(string $vocabulary_name, string $term_name = null, bool $force = false): int {
