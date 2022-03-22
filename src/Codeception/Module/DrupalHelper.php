@@ -585,8 +585,19 @@ class DrupalHelper extends \Codeception\Module {
   public function grabUserNameById(int $user_id): string {
     return $this->acceptanceHelperModule->sqlQuery("
       SELECT `name`
-      FROM `users`
+      FROM `users_field_data`
       WHERE `uid` = $user_id
+    ")->fetchColumn();
+  }
+
+  /**
+   * Return user id by name.
+   */
+  public function grabUserIdByName(string $user_name): int {
+    return (int)$this->acceptanceHelperModule->sqlQuery("
+      SELECT `uid`
+      FROM `users_field_data`
+      WHERE `name` = '$user_name'
     ")->fetchColumn();
   }
 
