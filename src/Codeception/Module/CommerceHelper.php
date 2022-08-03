@@ -109,7 +109,7 @@ class CommerceHelper extends \Codeception\Module {
    */
   public function clearCart(): void {
     $this->drupalHelperModule->amOnDrupalPage('/cart');
-    while ($this->acceptanceHelperModule->grabNumberOfElement('.delete-order-item')) {
+    while ($this->acceptanceHelperModule->grabNumberOfElements('.delete-order-item')) {
       $this->webDriverModule->click('.delete-order-item');
     }
   }
