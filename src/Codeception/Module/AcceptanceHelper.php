@@ -385,9 +385,21 @@ class AcceptanceHelper extends \Codeception\Module {
    * Resize window.
    */
   public function changeDevice(string $device_name): void {
-    $device_size = $this->config['devices_size'][$device_name];
-    $this->webDriverModule->resizeWindow($device_size['width'], $device_size['height']);
-    $this->webDriverModule->wait(1);
+    if ($device_name == 'default') {
+      $default_window_size = $this->webDriverModule->_getConfig('window_size');
+      if ($default_window_size == 'maximize') {
+        $this->webDriverModule->maximizeWindow();
+      }
+      else {
+        $default_window_size_array = explode('x', $default_window_size);
+        $this->webDriverModule->resizeWindow(intval($default_window_size_array[0]), intval($default_window_size_array[1]));
+      }
+    }
+    else {
+      $device_size = $this->config['devices_size'][$device_name];
+      $this->webDriverModule->resizeWindow($device_size['width'], $device_size['height']);
+      $this->webDriverModule->wait(1);
+    }
   }
 
   /**
