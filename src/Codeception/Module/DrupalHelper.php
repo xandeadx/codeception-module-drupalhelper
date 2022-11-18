@@ -170,8 +170,13 @@ class DrupalHelper extends \Codeception\Module {
    * Dont see flash errors and watchdog errors.
    */
   public function dontSeeDrupalErrors(bool $check_404 = TRUE, bool $check_error_message = TRUE, bool $check_watchdog_errors = TRUE): void {
-    if ($check_404 && $this->config['404_page_text']) {
-      $this->webDriverModule->dontSee($this->config['404_page_text']);
+    if ($check_404) {
+      if ($this->config['404_page_text']) {
+        $this->webDriverModule->dontSee($this->config['404_page_text']);
+      }
+      if ($this->config['404_page_source']) {
+        $this->webDriverModule->dontSeeInSource($this->config['404_page_source']);
+      }
     }
     if ($check_error_message) {
       $this->dontSeeErrorMessage();
@@ -204,12 +209,25 @@ class DrupalHelper extends \Codeception\Module {
     }
 
     $this->amOnDrupalPage('/user/login');
+
+    if ($this->grabCurrentUserId() > 0) {
+      $this->logout();
+      $this->amOnDrupalPage('/user/login');
+    }
+
     $this->webDriverModule->fillField('.user-login-form input[name="name"]', $username);
     $this->webDriverModule->fillField('.user-login-form input[name="pass"]', $password);
     $this->webDriverModule->click('.user-login-form .form-submit');
     $this->dontSeeDrupalErrors();
     $this->webDriverModule->saveSessionSnapshot($session_key);
     $this->currentUsername = $username;
+  }
+
+  /**
+   * Return admin password.
+   */
+  public function grabAdminPassword(): string {
+    return $this->config['admin_password'];
   }
 
   /**
@@ -257,7 +275,7 @@ class DrupalHelper extends \Codeception\Module {
     $remembered_username = array_pop($this->rememberedUsername);
     if ($this->currentUsername != $remembered_username) {
       if ($remembered_username) {
-        $this->webDriverModule->loadSessionSnapshot('user_' . $remembered_username);
+        $this->webDriverModule->loadSessionSnapshot('user:' . $remembered_username);
       }
       else {
         $this->logout();
@@ -559,7 +577,7 @@ class DrupalHelper extends \Codeception\Module {
    * Return last added comment id.
    */
   public function grabLastAddedCommentId(): int {
-    return $this->acceptanceHelperModule->sqlQuery("
+    return (int)$this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(`cid`)
       FROM `comment`
     ")->fetchColumn();
@@ -599,6 +617,39 @@ class DrupalHelper extends \Codeception\Module {
       FROM `users_field_data`
       WHERE `name` = '$user_name'
     ")->fetchColumn();
+  }
+
+  /**
+   * Return last added user id.
+   */
+  public function grabLastAddedUserId(): int {
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT MAX(`uid`)
+      FROM `users`
+    ")->fetchColumn();
+  }
+
+  /**
+   * Register user.
+   */
+  public function registerUser(string $name, string $password, string $email, bool $create_if_exist = FALSE): int {
+    $user_id = $this->grabUserIdByName($name);
+
+    if (!$user_id || $create_if_exist) {
+      $prev_added_user_id = $this->grabLastAddedUserId();
+      $this->runDrush('user:create "' . $name . '" --password="' . $password . '" --mail="' . $email . '"');
+      $user_id = $this->grabLastAddedUserId();
+      $this->assertNotEquals($user_id, $prev_added_user_id);
+    }
+
+    return $user_id;
+  }
+
+  /**
+   * Delete user.
+   */
+  public function deleteUser(int $user_id): void {
+    $this->runDrush("entity:delete user $user_id");
   }
 
   /**
@@ -691,13 +742,8 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Clear all caches.
    */
-  public function clearAllCaches(): void {
-    $this->rememberCurrentSession();
-    $this->loginAsAdmin();
-    $this->amOnDrupalPage('/admin/config/development/performance');
-    $this->webDriverModule->click('#edit-clear');
-    $this->dontSeeDrupalErrors();
-    $this->restoreRememberedSession();
+  public function drupalCacheRebuild(): void {
+    $this->runDrush('cache:rebuild');
   }
 
   /**
@@ -733,6 +779,42 @@ class DrupalHelper extends \Codeception\Module {
       SELECT MAX(`id`)
       FROM `contact_message`
     ")->fetchColumn();
+  }
+
+  /**
+   * Delete comment.
+   */
+  public function deleteComment(int $comment_id): void {
+    $this->runDrush("entity:delete comment $comment_id");
+  }
+
+  /**
+   * Change views "per page" option.
+   */
+  public function changeViewsPerPageOption(string $view_name, string $display_name, int $per_page = null): void {
+    static $prev_value;
+
+    $this->rememberCurrentSession();
+    $this->loginAsAdmin();
+    $this->amOnDrupalPage("/admin/structure/views/nojs/display/$view_name/$display_name/pager_options");
+
+    if ($per_page) {
+      $prev_value = $this->webDriverModule->grabValueFrom('pager_options[items_per_page]');
+    }
+    else {
+      $per_page = $prev_value;
+    }
+
+    $current_value = $this->webDriverModule->grabValueFrom('pager_options[items_per_page]');
+
+    if ($per_page != $current_value) {
+      $this->webDriverModule->fillField('pager_options[items_per_page]', $per_page);
+      $this->webDriverModule->click('#edit-submit-views-ui-edit-display-form');
+      $this->webDriverModule->click('#edit-actions-submit');
+      $this->dontSeeDrupalErrors();
+    }
+
+    $this->restoreRememberedSession();
   }
 
   /**

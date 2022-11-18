@@ -58,20 +58,24 @@ class AcceptanceHelper extends \Codeception\Module {
   /**
    * See breadcrumb.
    */
-  public function seeBreadcrumb(array $items): void {
+  public function seeBreadcrumb(array $items, bool $check_count = TRUE): void {
     $this->seeList($items, $this->config['breadcrumb_item_selector']);
+
+    if ($check_count) {
+      $this->webDriverModule->seeNumberOfElements($this->config['breadcrumb_item_selector'], count($items));
+    }
   }
 
   /**
    * See element attribute exists or see attribute value.
    */
   public function seeElementAttribute(string $element_selector, string $attribute_name, string $attribute_value = NULL): void {
-    $this->webDriverModule->seeElementInDOM($element_selector);
-    $this->webDriverModule->seeElementInDOM($element_selector . '[' . $attribute_name . ']');
-    if ($attribute_value !== NULL) {
-      $element_attribute_value = $this->webDriverModule->grabAttributeFrom($element_selector, $attribute_name);
-      $this->assertEquals($attribute_value, $element_attribute_value);
-    }
+    $elements = $this->webDriverModule->_findElements($element_selector); /** @var WebDriverElement[] $elements */
+    $this->assertNotEmpty($elements, 'Element "' . $element_selector . '" not exists.');
+
+    $element = current($elements);
+    $element_attribute_value = $element->getAttribute($attribute_name);
+    $this->assertEquals($attribute_value, $element_attribute_value);
   }
 
   /**
@@ -87,6 +91,13 @@ class AcceptanceHelper extends \Codeception\Module {
    */
   public function seeField(string $name) {
     $this->webDriverModule->seeElement('[name="' . $name . '"]');
+  }
+
+  /**
+   * Dont see field by name.
+   */
+  public function dontSeeField(string $name) {
+    $this->webDriverModule->dontSeeElement('[name="' . $name . '"]');
   }
 
   /**
@@ -439,6 +450,38 @@ class AcceptanceHelper extends \Codeception\Module {
   public function seeCanonical(string $url): void {
     $host_with_schema = $this->getConfigHostWithShema();
     $this->seeElementAttribute('link[rel="canonical"]', 'href', $host_with_schema . $url);
+  }
+
+  /**
+   * Return element index starting from 1.
+   */
+  public function grabElementNthChild(string $element_selector): ?int {
+    $index = $this->webDriverModule->executeJS(<<<JS
+      var element = document.querySelector('$element_selector');
+      return element ? [...element.parentElement.children].indexOf(element) + 1 : 0;
+    JS);
+
+    return $index ? (int)$index : null;
+  }
+
+  /**
+   * See element index.
+   */
+  public function seeElementNthChild(string $element_selector, int $index): void {
+    $elements = $this->webDriverModule->_findElements($element_selector);
+    $this->assertNotEmpty($elements, "Element \"$element_selector\" not found.");
+
+    $element_nthchild = $this->grabElementNthChild($element_selector);
+    $this->assertEquals($index, $element_nthchild);
+  }
+
+  /**
+   * See elements order.
+   */
+  public function seeElementsOrder(array $selectors): void {
+    foreach ($selectors as $index => $selector) {
+      $this->seeElementIndex($selector, $index + 1);
+    }
   }
 
 }
