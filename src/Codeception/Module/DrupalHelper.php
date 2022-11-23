@@ -358,7 +358,7 @@ class DrupalHelper extends \Codeception\Module {
       $this->restoreRememberedSession();
     }
     else {
-      $this->runDrush('entity-delete node ' . (int)$nid);
+      $this->deleteEntities('node', $nid);
     }
 
     if ($check_result) {
@@ -381,7 +381,7 @@ class DrupalHelper extends \Codeception\Module {
       }
     }
     else {
-      $this->runDrush('entity-delete node ' . implode(',', $nodes_ids));
+      $this->deleteEntities('node', $nodes_ids);
     }
   }
 
@@ -389,7 +389,7 @@ class DrupalHelper extends \Codeception\Module {
    * Delete nodes by type.
    */
   public function deleteNodesByType(string $node_type): void {
-    $this->runDrush('entity-delete node --bundle=' . $node_type);
+    $this->runDrush('entity:delete node --bundle=' . $node_type);
   }
 
   /**
@@ -482,7 +482,7 @@ class DrupalHelper extends \Codeception\Module {
       $this->restoreRememberedSession();
     }
     else {
-      $this->runDrush('entity-delete taxonomy_term ' . $term_id);
+      $this->deleteEntities('taxonomy_term', $term_id);
     }
   }
 
@@ -496,7 +496,7 @@ class DrupalHelper extends \Codeception\Module {
       }
     }
     else {
-      $this->runDrush('entity-delete taxonomy_term' . implode(',', $terms_ids));
+      $this->deleteEntities('taxonomy_term', $terms_ids);
     }
   }
 
@@ -649,7 +649,7 @@ class DrupalHelper extends \Codeception\Module {
    * Delete user.
    */
   public function deleteUser(int $user_id): void {
-    $this->runDrush("entity:delete user $user_id");
+    $this->deleteEntities('user', $user_id);
   }
 
   /**
@@ -785,7 +785,7 @@ class DrupalHelper extends \Codeception\Module {
    * Delete comment.
    */
   public function deleteComment(int $comment_id): void {
-    $this->runDrush("entity:delete comment $comment_id");
+    $this->deleteEntities('comment', $comment_id);
   }
 
   /**
@@ -815,6 +815,33 @@ class DrupalHelper extends \Codeception\Module {
     }
 
     $this->restoreRememberedSession();
+  }
+
+  /**
+   * Delete entities using drush.
+   */
+  public function deleteEntities(string $entity_type_id, int|array $entity_ids = null, int|array $exclude_ids = null): void {
+    $command = "entity:delete $entity_type_id";
+
+    if ($entity_ids !== null) {
+      if (!$entity_ids) {
+        throw new Exception('Entity id is empty.');
+      }
+      if (!is_array($entity_ids)) {
+        $entity_ids = [$entity_ids];
+      }
+
+      $command .= ' ' . implode(',', $entity_ids);
+    }
+
+    if ($exclude_ids) {
+      if (!is_array($exclude_ids)) {
+        $exclude_ids = [$exclude_ids];
+      }
+      $command .= ' --exclude=' . implode(',', $exclude_ids);
+    }
+
+    $this->runDrush($command);
   }
 
   /**

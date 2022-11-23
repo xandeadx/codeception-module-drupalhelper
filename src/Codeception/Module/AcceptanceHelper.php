@@ -69,21 +69,31 @@ class AcceptanceHelper extends \Codeception\Module {
   /**
    * See element attribute exists or see attribute value.
    */
-  public function seeElementAttribute(string $element_selector, string $attribute_name, string $attribute_value = NULL): void {
+  public function seeElementAttribute(string $element_selector, string $attribute_name, string $attribute_value = null): void {
     $elements = $this->webDriverModule->_findElements($element_selector); /** @var WebDriverElement[] $elements */
     $this->assertNotEmpty($elements, 'Element "' . $element_selector . '" not exists.');
 
     $element = current($elements);
     $element_attribute_value = $element->getAttribute($attribute_name);
-    $this->assertEquals($attribute_value, $element_attribute_value);
+
+    if ($attribute_value === null) {
+      $this->assertNotNull($element_attribute_value, 'Element "' . $element_selector . '" does not contain attribute "' . $attribute_name . '".');
+    }
+    else {
+      $this->assertEquals($attribute_value, $element_attribute_value);
+    }
   }
 
   /**
    * See element attribute not exists.
    */
   public function dontSeeElementAttribute(string $element_selector, string $attribute_name): void {
-    $this->webDriverModule->seeElementInDOM($element_selector);
-    $this->webDriverModule->dontSeeElementInDOM($element_selector . '[' . $attribute_name . ']');
+    $elements = $this->webDriverModule->_findElements($element_selector); /** @var WebDriverElement[] $elements */
+    $this->assertNotEmpty($elements, 'Element "' . $element_selector . '" not exists.');
+
+    $element = current($elements);
+    $element_attribute_value = $element->getAttribute($attribute_name);
+    $this->assertNull($element_attribute_value, 'Element "' . $element_selector . '" has contains attribute "' . $attribute_name . '".');
   }
 
   /**
@@ -393,6 +403,13 @@ class AcceptanceHelper extends \Codeception\Module {
   }
 
   /**
+   * See checkbox is unchecked.
+   */
+  public function seeCheckboxIsUnchecked(mixed $checkbox): void {
+    $this->webDriverModule->dontSeeCheckboxIsChecked($checkbox);
+  }
+
+  /**
    * Resize window.
    */
   public function changeDevice(string $device_name): void {
@@ -480,7 +497,7 @@ class AcceptanceHelper extends \Codeception\Module {
    */
   public function seeElementsOrder(array $selectors): void {
     foreach ($selectors as $index => $selector) {
-      $this->seeElementIndex($selector, $index + 1);
+      $this->seeElementNthChild($selector, $index + 1);
     }
   }
 

@@ -27,42 +27,47 @@ class CommerceHelper extends \Codeception\Module {
   /**
    * Return last added product id.
    */
-  public function grabLastAddedProductId(string $product_type = null): int {
-    return (int)$this->acceptanceHelperModule->sqlQuery("
+  public function grabLastAddedProductId(string $product_type = null): ?int {
+    $product_id = $this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(product_id)
       FROM commerce_product
       " . ($product_type ? "WHERE type = '$product_type'" : "") . "
     ")->fetchColumn();
+
+    return $product_id ? (int)$product_id : null;
   }
 
   /**
-   * Delete product.
+   * Return last added product id.
    */
-  public function deleteProduct(int $product_id, bool $use_browser = false): void {
-    if ($use_browser) {
-      $this->drupalHelperModule->rememberCurrentSession();
-      $this->drupalHelperModule->loginAsAdmin();
-      $this->drupalHelperModule->amOnDrupalPage('/product/' . $product_id . '/delete');
-      $this->webDriverModule->click('.form-submit');
-      $this->drupalHelperModule->dontSeeDrupalErrors();
-      $this->drupalHelperModule->restoreRememberedSession();
-    }
-    else {
-      $this->drupalHelperModule->runDrush("entity-delete commerce_product $product_id");
-    }
+  public function grabLastAddedVariationId(string $variation_type = null): int {
+    return (int)$this->acceptanceHelperModule->sqlQuery("
+      SELECT MAX(variation_id)
+      FROM commerce_product_variation
+      " . ($variation_type ? "WHERE type = '$variation_type'" : "") . "
+    ")->fetchColumn();
   }
 
   /**
    * Delete products.
    */
-  public function deleteProducts(array $products_ids, bool $use_browser = false): void {
+  public function deleteProducts(array|int $products_ids, bool $use_browser = false): void {
+    if (!is_array($products_ids)) {
+      $products_ids = [$products_ids];
+    }
+
     if ($use_browser) {
       foreach ($products_ids as $product_id) {
-        $this->deleteProduct($product_id, $use_browser);
+        $this->drupalHelperModule->rememberCurrentSession();
+        $this->drupalHelperModule->loginAsAdmin();
+        $this->drupalHelperModule->amOnDrupalPage('/product/' . $product_id . '/delete');
+        $this->webDriverModule->click('.form-submit');
+        $this->drupalHelperModule->dontSeeDrupalErrors();
+        $this->drupalHelperModule->restoreRememberedSession();
       }
     }
     else {
-      $this->drupalHelperModule->runDrush('entity-delete commerce_product ' . implode(',', $products_ids));
+      $this->drupalHelperModule->deleteEntities('commerce_product', $products_ids);
     }
   }
 
@@ -70,7 +75,7 @@ class CommerceHelper extends \Codeception\Module {
    * Delete all products.
    */
   public function deleteAllProducts(): void {
-    $this->drupalHelperModule->runDrush('entity-delete commerce_product');
+    $this->drupalHelperModule->deleteEntities('commerce_product');
   }
 
   /**
@@ -95,6 +100,19 @@ class CommerceHelper extends \Codeception\Module {
    */
   public function grabProductAlias(int $product_id): string {
     return $this->drupalHelperModule->grabPathAlias('/product/' . $product_id);
+  }
+
+  /**
+   * Return product id by title.
+   */
+  public function grabProductIdByTitle(string $product_title): ?int {
+    $product_id = $this->acceptanceHelperModule->sqlQuery("
+      SELECT p.product_id
+      FROM commerce_product_field_data p
+      WHERE p.title = '$product_title'
+    ")->fetchColumn();
+
+    return $product_id ? (int)$product_id : null;
   }
 
   /**
