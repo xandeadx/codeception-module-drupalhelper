@@ -632,7 +632,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Register user.
    */
-  public function registerUser(string $name, string $password, string $email, bool $create_if_exist = FALSE): int {
+  public function registerUser(string $name, string $password, string $email, string $role = NULL, bool $create_if_exist = FALSE): int {
     $user_id = $this->grabUserIdByName($name);
 
     if (!$user_id || $create_if_exist) {
@@ -640,6 +640,10 @@ class DrupalHelper extends \Codeception\Module {
       $this->runDrush('user:create "' . $name . '" --password="' . $password . '" --mail="' . $email . '"');
       $user_id = $this->grabLastAddedUserId();
       $this->assertNotEquals($user_id, $prev_added_user_id);
+
+      if ($role) {
+        $this->runDrush('user:role:add "' . $role . '" "' . $name . '"');
+      }
     }
 
     return $user_id;
