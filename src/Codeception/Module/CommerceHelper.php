@@ -132,4 +132,16 @@ class CommerceHelper extends \Codeception\Module {
     }
   }
 
+  /**
+   * Return last added order id.
+   */
+  public function grabLastAddedOrderId(): ?int {
+    $order_id = $this->acceptanceHelperModule->sqlQuery("
+      SELECT MAX(order_id)
+      FROM commerce_order
+    ")->fetchColumn();
+
+    return $order_id ? (int)$order_id : null;
+  }
+
 }
