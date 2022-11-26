@@ -769,10 +769,17 @@ class DrupalHelper extends \Codeception\Module {
   }
 
   /**
-   * Clear watchdog.
+   * Clear watchdog table.
    */
   public function clearWatchdog(): void {
     $this->truncateTable('watchdog');
+  }
+
+  /**
+   * Clear queue table.
+   */
+  public function clearQueue(): void {
+    $this->truncateTable('queue');
   }
 
   /**
