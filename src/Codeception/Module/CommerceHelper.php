@@ -116,6 +116,19 @@ class CommerceHelper extends \Codeception\Module {
   }
 
   /**
+   * Return product id by sku.
+   */
+  public function grabProductIdBySku(string $product_sku): ?int {
+    $product_id = $this->acceptanceHelperModule->sqlQuery("
+      SELECT v.product_id
+      FROM commerce_product_variation_field_data v
+      WHERE v.sku = '$product_sku'
+    ")->fetchColumn();
+
+    return $product_id ? (int)$product_id : null;
+  }
+
+  /**
    * Open product page.
    */
   public function amOnProductPage(int $product_id): void {
