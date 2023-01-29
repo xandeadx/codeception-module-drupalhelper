@@ -6,7 +6,7 @@ use function GuzzleHttp\Psr7\uri_for;
 
 class DrupalHelper extends \Codeception\Module {
 
-  protected $config = [
+  protected array $config = [
     'create_dump' => true,
     'admin_username' => 'admin',
     'admin_password' => 'admin',

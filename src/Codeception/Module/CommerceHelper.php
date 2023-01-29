@@ -4,7 +4,7 @@ namespace Codeception\Module;
 
 class CommerceHelper extends \Codeception\Module {
 
-  protected $config = [];
+  protected array $config = [];
 
   protected \Codeception\Module\WebDriver $webDriverModule;
 

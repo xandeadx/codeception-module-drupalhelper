@@ -8,9 +8,9 @@
     "authors": [{
         "name": "xandeadx"
     }],
-    "minimum-stability": "RC",
+    "minimum-stability": "dev",
     "conflict": {
-        "codeception/codeception": "<4.0"
+        "codeception/codeception": "<5.0"
     },
     "autoload": {
         "classmap": ["src/"]

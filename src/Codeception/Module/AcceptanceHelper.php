@@ -6,7 +6,7 @@ use Facebook\WebDriver\WebDriverBy;
 
 class AcceptanceHelper extends \Codeception\Module {
 
-  protected $config = [
+  protected array $config = [
     'page_title_selector' => '.page-title',
     'breadcrumb_item_selector' => '.breadcrumb__item',
     'sticky_header_height' => 0,
