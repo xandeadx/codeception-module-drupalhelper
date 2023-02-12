@@ -157,4 +157,15 @@ class CommerceHelper extends \Codeception\Module {
     return $order_id ? (int)$order_id : null;
   }
 
+  /**
+   * Return order total price.
+   */
+  public function grabOrderTotalPrice(int $order_id): array {
+    return $this->acceptanceHelperModule->sqlQuery("
+      SELECT total_price__number AS number, total_price__currency_code AS currency_code
+      FROM commerce_order
+      WHERE order_id = $order_id
+    ")->fetch();
+  }
+
 }
