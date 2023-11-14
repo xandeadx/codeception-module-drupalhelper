@@ -661,11 +661,14 @@ class DrupalHelper extends \Codeception\Module {
    *
    * @param string $system_path System path starting with "/", eg "/node/123"
    */
-  public function grabPathAlias(string $system_path): string {
+  public function grabPathAlias(string $system_path, string $langcode = NULL): string {
     $path_alias = $this->acceptanceHelperModule->sqlQuery("
       SELECT `alias`
       FROM `path_alias`
       WHERE `path` = '$system_path'
+      " . ($langcode ? "AND `langcode` = '$langcode'" : "") . "
+      ORDER BY `id`
+      LIMIT 1
     ")->fetchColumn();
     return $path_alias ? $path_alias : $system_path;
   }
@@ -673,8 +676,8 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return node alias.
    */
-  public function grabNodeAlias(int $node_id): string {
-    return $this->grabPathAlias('/node/' . $node_id);
+  public function grabNodeAlias(int $node_id, string $langcode = NULL): string {
+    return $this->grabPathAlias('/node/' . $node_id, $langcode);
   }
 
   /**
