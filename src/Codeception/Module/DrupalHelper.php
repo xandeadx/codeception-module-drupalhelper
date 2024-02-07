@@ -317,8 +317,8 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return last added node id.
    */
-  public function grabLastAddedNodeId(string $node_type = null): int {
-    return (int)$this->acceptanceHelperModule->sqlQuery("
+  public function grabLastAddedNodeId(string $node_type = null): ?int {
+    return $this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(nid)
       FROM `node`
       " . ($node_type ? "WHERE `type` = '$node_type'" : "") . "
@@ -328,7 +328,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return node title by id.
    */
-  public function grabNodeTitleById(int $node_id): string {
+  public function grabNodeTitleById(int $node_id): ?string {
     return $this->acceptanceHelperModule->sqlQuery("
       SELECT title
       FROM `node_field_data`
@@ -339,7 +339,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return node title by id.
    */
-  public function grabNodeIdByTitle(string $title, string $node_type): string {
+  public function grabNodeIdByTitle(string $title, string $node_type): ?string {
     return $this->acceptanceHelperModule->sqlQuery("
       SELECT nid
       FROM `node_field_data`
@@ -398,8 +398,8 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return last added term id.
    */
-  public function grabLastAddedTermId(string $vocabulary_name): int {
-    return (int)$this->acceptanceHelperModule->sqlQuery("
+  public function grabLastAddedTermId(string $vocabulary_name): ?int {
+    return $this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(`tid`)
       FROM `taxonomy_term_data`
       WHERE `vid` = '$vocabulary_name'
@@ -409,8 +409,8 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return term id by name.
    */
-  public function grabTermIdByName(string $vocabulary_name, string $term_name): int {
-    return (int)$this->acceptanceHelperModule->sqlQuery("
+  public function grabTermIdByName(string $vocabulary_name, string $term_name): ?int {
+    return $this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(`tid`)
       FROM `taxonomy_term_field_data`
       WHERE `vid` = '$vocabulary_name' AND `name` = '$term_name'
@@ -420,7 +420,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return term id by name.
    */
-  public function grabTermNameById(string $term_id): string {
+  public function grabTermNameById(string $term_id): ?string {
     return $this->acceptanceHelperModule->sqlQuery("
       SELECT `name`
       FROM `taxonomy_term_field_data`
@@ -506,7 +506,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return last added menu item id.
    */
-  public function grabLastAddedMenuItemId(): int {
+  public function grabLastAddedMenuItemId(): ?int {
     return $this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(`id`)
       FROM `menu_link_content`
@@ -558,7 +558,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return last added file id.
    */
-  public function grabLastAddedFileId(): int {
+  public function grabLastAddedFileId(): ?int {
     return $this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(`fid`)
       FROM `file_managed`
@@ -579,7 +579,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return last added comment id.
    */
-  public function grabLastAddedCommentId(): int {
+  public function grabLastAddedCommentId(): ?int {
     return (int)$this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(`cid`)
       FROM `comment`
@@ -603,7 +603,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return user name by user id.
    */
-  public function grabUserNameById(int $user_id): string {
+  public function grabUserNameById(int $user_id): ?string {
     return $this->acceptanceHelperModule->sqlQuery("
       SELECT `name`
       FROM `users_field_data`
@@ -614,8 +614,8 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return user id by name.
    */
-  public function grabUserIdByName(string $user_name): int {
-    return (int)$this->acceptanceHelperModule->sqlQuery("
+  public function grabUserIdByName(string $user_name): ?int {
+    return $this->acceptanceHelperModule->sqlQuery("
       SELECT `uid`
       FROM `users_field_data`
       WHERE `name` = '$user_name'
@@ -625,7 +625,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return last added user id.
    */
-  public function grabLastAddedUserId(): int {
+  public function grabLastAddedUserId(): ?int {
     return $this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(`uid`)
       FROM `users`
@@ -791,7 +791,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Return last added contact message id.
    */
-  public function grabLastAddedContactMessageId(): int {
+  public function grabLastAddedContactMessageId(): ?int {
     return $this->acceptanceHelperModule->sqlQuery("
       SELECT MAX(`id`)
       FROM `contact_message`
