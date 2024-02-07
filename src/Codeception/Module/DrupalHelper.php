@@ -185,7 +185,7 @@ class DrupalHelper extends \Codeception\Module {
       $this->dontSeeWatchdogPhpErrors();
     }
     if ($check_ajax_error) {
-      $this->dontSee('Oops, something went wrong. Check your browser\'s developer console for more details');
+      $this->webDriverModule->dontSee('Oops, something went wrong. Check your browser\'s developer console for more details');
     }
   }
 
