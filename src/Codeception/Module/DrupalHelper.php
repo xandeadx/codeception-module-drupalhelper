@@ -169,7 +169,7 @@ class DrupalHelper extends \Codeception\Module {
   /**
    * Dont see flash errors and watchdog errors.
    */
-  public function dontSeeDrupalErrors(bool $check_404 = TRUE, bool $check_error_message = TRUE, bool $check_watchdog_errors = TRUE): void {
+  public function dontSeeDrupalErrors(bool $check_404 = TRUE, bool $check_error_message = TRUE, bool $check_watchdog_errors = TRUE, bool $check_ajax_error = TRUE): void {
     if ($check_404) {
       if ($this->config['404_page_text']) {
         $this->webDriverModule->dontSee($this->config['404_page_text']);
@@ -183,6 +183,9 @@ class DrupalHelper extends \Codeception\Module {
     }
     if ($check_watchdog_errors) {
       $this->dontSeeWatchdogPhpErrors();
+    }
+    if ($check_ajax_error) {
+      $this->dontSee('Oops, something went wrong. Check your browser\'s developer console for more details');
     }
   }
 
