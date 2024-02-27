@@ -730,7 +730,9 @@ class DrupalHelper extends \Codeception\Module {
    * Clear cache table.
    */
   public function clearCacheTable(string $bin): void {
-    $this->clearTable('cache_' . $bin);
+    if ($this->tableExist('cache_' . $bin)) {
+      $this->clearTable('cache_' . $bin);
+    }
   }
 
   /**
