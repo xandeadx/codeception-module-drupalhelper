@@ -201,10 +201,10 @@ class AcceptanceHelper extends \Codeception\Module {
   /**
    * See jQuery Dialog.
    */
-  public function seeJqueryDialog(string $title = NULL): void {
+  public function seeJqueryDialog(?string $dialog_title = NULL): void {
     $this->webDriverModule->seeElement('.ui-dialog');
-    if ($title) {
-      $this->webDriverModule->see($title, '.ui-dialog-title');
+    if ($dialog_title) {
+      $this->webDriverModule->see($dialog_title, '.ui-dialog-title');
     }
   }
 

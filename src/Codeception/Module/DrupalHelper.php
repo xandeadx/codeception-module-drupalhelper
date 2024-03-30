@@ -12,7 +12,8 @@ class DrupalHelper extends \Codeception\Module {
     'admin_password' => 'admin',
     'error_message_selectors' => ['.status-message--error', '.messages--error'],
     'exclude_data_tables' => [],
-    '404_page_text' => 'Page not found',
+    '404_page_text' => '',
+    '404_page_source' => '',
   ];
 
   protected \Codeception\Module\WebDriver $webDriverModule;
@@ -156,14 +157,17 @@ class DrupalHelper extends \Codeception\Module {
    * Dont see watchdog num errors.
    */
   public function dontSeeWatchdogPhpErrors(): void {
-    $errors_count = (int)$this->acceptanceHelperModule->sqlQuery("
-      SELECT COUNT(*)
+    $last_error_object = $this->acceptanceHelperModule->sqlQuery("
+      SELECT `message`, `variables`
       FROM `watchdog`
       WHERE
         `type` = 'php' AND
         `variables` NOT LIKE '%rename(%/php/twig/%'
-    ")->fetchColumn();
-    $this->assertEquals(0, $errors_count, 'Watchdog contains php errors.');
+      ORDER BY wid DESC
+      LIMIT 0, 1
+    ")->fetch();
+    $last_error_formatted = $last_error_object ? strtr($last_error_object->message, unserialize($last_error_object->variables)) : '';
+    $this->assertEmpty($last_error_formatted, 'Watchdog contains php errors. Last error: ' . $last_error_formatted);
   }
 
   /**
