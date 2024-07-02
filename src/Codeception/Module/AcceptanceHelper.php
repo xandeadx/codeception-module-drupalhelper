@@ -158,6 +158,9 @@ class AcceptanceHelper extends \Codeception\Module {
 
   /**
    * Fill checkbox.
+   *
+   * @param string $checkbox Checkbox selector, or label, or name
+   * @param bool $enabled Checkbox state
    */
   public function fillCheckbox(string $checkbox, bool $enabled = TRUE): void {
     if ($enabled) {
